@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32804.467
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HexTilemapPipeline", "HexTilemapPipeline\HexTilemapPipeline.csproj", "{92AA3B9C-7E50-40C7-9398-7FF9BBE982EC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoafGame", "LoafGame\LoafGame.csproj", "{57DDEEF9-600C-4EAF-9E1A-7156BA4274E8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{92AA3B9C-7E50-40C7-9398-7FF9BBE982EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92AA3B9C-7E50-40C7-9398-7FF9BBE982EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92AA3B9C-7E50-40C7-9398-7FF9BBE982EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92AA3B9C-7E50-40C7-9398-7FF9BBE982EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57DDEEF9-600C-4EAF-9E1A-7156BA4274E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57DDEEF9-600C-4EAF-9E1A-7156BA4274E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57DDEEF9-600C-4EAF-9E1A-7156BA4274E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57DDEEF9-600C-4EAF-9E1A-7156BA4274E8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {16071880-420A-4270-9EB9-9FA56AB4D849}
+	EndGlobalSection
+EndGlobal

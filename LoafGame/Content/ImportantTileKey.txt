@@ -1,0 +1,6 @@
+﻿Grass - 22
+Desert - 51
+Forest 1 - 133
+Forest 2 - 149
+Forest 3 - 165
+Forest 4 - 181    
