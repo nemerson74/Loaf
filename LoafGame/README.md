@@ -30,6 +30,10 @@ These assets are free to use in projects.
 Redistribution of the assets themselves is not allowed;
 please visit the original source to obtain them.
 
+* Title Screen Background is by kiddolink
+(https://kiddolink.itch.io/parallax-background-plains-pixel-art)
+Used with permission.
+
 * Music:
 * "05 A joyfull get together in the royal chambers" by Boris Sandor
 * "02 The Dark Lord - upbeat version" by Boris Sandor
