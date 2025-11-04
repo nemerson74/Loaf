@@ -60,18 +60,18 @@ namespace LoafGame
             directionTimer += gameTime.ElapsedGameTime.TotalSeconds;
             animationTimer += gameTime.ElapsedGameTime.TotalSeconds;
             
-            if (directionTimer > 3)
+            if (directionTimer > 4)
             {
                 switch(Direction)
                 {
                     case Direction.Up:
                         Direction = Direction.Left;
-                        directionTimer -= 2;
+                        directionTimer -= 3;
                         break;
 
                     case Direction.Down:
                         Direction = Direction.Right;
-                        directionTimer -= 2;
+                        directionTimer -= 3;
                         break;
 
                     case Direction.Right:
@@ -85,7 +85,7 @@ namespace LoafGame
                 directionTimer -= 1;
             }
 
-            //Move bat - go forward in current direction
+            //Move worker - go forward in current direction
             switch (Direction)
             {
                 case Direction.Down:

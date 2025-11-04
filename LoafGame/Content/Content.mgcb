@@ -26,11 +26,23 @@
 /processorParam:Quality=Best
 /build:013_Confirm_03.wav
 
-#begin 05 A joyfull get together in the royal chambers.wav
+#begin 02 The Dark Lord - upbeat version_[cut_60sec].wav
 /importer:WavImporter
 /processor:SongProcessor
 /processorParam:Quality=Best
-/build:05 A joyfull get together in the royal chambers.wav
+/build:02 The Dark Lord - upbeat version_[cut_60sec].wav
+
+#begin 04 Heroes theme - Ouverture of Valor_[cut_84sec].wav
+/importer:WavImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:04 Heroes theme - Ouverture of Valor_[cut_84sec].wav
+
+#begin 05 A joyfull get together in the royal chambers_[cut_41sec].wav
+/importer:WavImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:05 A joyfull get together in the royal chambers_[cut_41sec].wav
 
 #begin 35_Miss_Evade_02.wav
 /importer:WavImporter
@@ -147,6 +159,133 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:nail.png
+
+#begin TitleLayers/background_plains-Sheet1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:TitleLayers/background_plains-Sheet1.png
+
+#begin TitleLayers/background_plains-Sheet2.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:TitleLayers/background_plains-Sheet2.png
+
+#begin TitleLayers/background_plains-Sheet3.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:TitleLayers/background_plains-Sheet3.png
+
+#begin TitleLayers/background_plains-Sheet4.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:TitleLayers/background_plains-Sheet4.png
+
+#begin TitleLayers/background_plains-Sheet5.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:TitleLayers/background_plains-Sheet5.png
+
+#begin TitleLayersScaled/background_plains-Sheet1_scaled_3x.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:TitleLayersScaled/background_plains-Sheet1_scaled_3x.png
+
+#begin TitleLayersScaled/background_plains-Sheet2_scaled_3x.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:TitleLayersScaled/background_plains-Sheet2_scaled_3x.png
+
+#begin TitleLayersScaled/background_plains-Sheet3_scaled_3x.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:TitleLayersScaled/background_plains-Sheet3_scaled_3x.png
+
+#begin TitleLayersScaled/background_plains-Sheet4_scaled_3x.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:TitleLayersScaled/background_plains-Sheet4_scaled_3x.png
+
+#begin TitleLayersScaled/background_plains-Sheet5_scaled_3x.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:TitleLayersScaled/background_plains-Sheet5_scaled_3x.png
+
+#begin vergilia.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:vergilia.spritefont
 
 #begin wood.png
 /importer:TextureImporter

@@ -46,6 +46,12 @@ public class CreditsScene : Scene
             return;
         }
 
+        if (input.KeyClicked(Keys.Escape))
+        {
+            LOAF.ChangeScene(new TitleScene(loaf));
+            return;
+        }
+
         // Keyboard scroll
         if (input.IsKeyDown(Keys.Down))
             scrollOffset -= scrollSpeed;
@@ -60,7 +66,7 @@ public class CreditsScene : Scene
         // Clamp bottom
         if (!string.IsNullOrEmpty(creditsText))
         {
-            var font = Content.Load<SpriteFont>("hamburger");
+            var font = Content.Load<SpriteFont>("vergilia");
             float fontScale = 0.85f; //needed for scrolling scaling
             float lineHeight = font.LineSpacing * fontScale;
             string[] lines = creditsText.Split('\n');
@@ -75,8 +81,8 @@ public class CreditsScene : Scene
         Game.GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(1));
 
-        SpriteFont font = Content.Load<SpriteFont>("hamburger");
-        float fontScale = 0.75f;
+        SpriteFont font = Content.Load<SpriteFont>("vergilia");
+        float fontScale = 1f;
         Vector2 position = new Vector2(20, 20 + scrollOffset);
         float lineHeight = font.LineSpacing * fontScale;
 
@@ -89,7 +95,7 @@ public class CreditsScene : Scene
                 position.Y += lineHeight;
             }
         }
-        _spriteBatch.DrawString(font, "Right click to return", new Vector2(20, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "Right click to return, Arrows up and down to scroll", new Vector2(20, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
         _spriteBatch.End();
     }

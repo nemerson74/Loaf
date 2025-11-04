@@ -139,7 +139,7 @@ namespace LoafGame
             #region exit
             if (currentGamePadState.Buttons.Back == ButtonState.Pressed || currentKeyboardState.IsKeyDown(Keys.Escape))
             {
-                Exit = true;
+                //Exit = true;
             }
             #endregion
         }
@@ -147,6 +147,11 @@ namespace LoafGame
         public bool IsKeyDown(Microsoft.Xna.Framework.Input.Keys key)
         {
             return currentKeyboardState.IsKeyDown(key);
+        }
+
+        public bool KeyClicked(Keys key)
+        {
+            return previousKeyboardState.IsKeyUp(key) && currentKeyboardState.IsKeyDown(key);
         }
     }
 }

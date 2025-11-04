@@ -40,13 +40,23 @@ namespace LoafGame
         /// </summary>
         public static Song backgroundMusicTitle { get; private set; }
 
+        /// <summary>
+        /// Background music for overworld screen.
+        /// </summary>
+        public static Song backgroundMusicOverworld { get; private set; }
+
+        /// <summary>
+        /// Background music for overworld screen.
+        /// </summary>
+        public static Song backgroundMusicMinigame { get; private set; }
+
         public LOAF()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             _graphics.PreferredBackBufferWidth = 960; // Set your desired width
             _graphics.PreferredBackBufferHeight = 540; // Set your desired height
-            _graphics.IsFullScreen = true;
+            //_graphics.IsFullScreen = true;
             _graphics.ApplyChanges();
             IsMouseVisible = true;
         }
@@ -64,7 +74,9 @@ namespace LoafGame
         {
             ButtonHoverSound = Content.Load<SoundEffect>("001_Hover_01");
             ButtonClickSound = Content.Load<SoundEffect>("013_Confirm_03");
-            backgroundMusicTitle = Content.Load<Song>("05 A joyfull get together in the royal chambers");
+            backgroundMusicTitle = Content.Load<Song>("05 A joyfull get together in the royal chambers_[cut_41sec]");
+            backgroundMusicOverworld = Content.Load<Song>("04 Heroes theme - Ouverture of Valor_[cut_84sec]");
+            backgroundMusicMinigame = Content.Load<Song>("02 The Dark Lord - upbeat version_[cut_60sec]");
         }
 
         protected override void Update(GameTime gameTime)

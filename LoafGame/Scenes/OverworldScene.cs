@@ -12,8 +12,15 @@ namespace LoafGame.Scenes;
 public class OverworldScene : Scene
 {
     private SpriteBatch _spriteBatch;
+    private RedWorker redWorker;
     private HexTilemap _tilemap;
     private BoundingPoint cursor;
+    private SpriteFont _font;
+    private bool isSaved = false;
+    private float textFadeTimer = 0f;
+    private float textFadeOpacity = 1f;
+
+    private Vector2 startingPosition = Vector2.Zero;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OverworldScene"/> class.
@@ -21,9 +28,25 @@ public class OverworldScene : Scene
     /// <param name="game">The game instance that this scene is associated with.</param>
     public OverworldScene(Game game) : base(game) { }
 
+    public OverworldScene(Game game, SaveData save) : base(game)
+    {
+        if (save != null)
+        {
+            startingPosition = new Vector2(save.X, save.Y);
+        }
+    }
+
     public override void Initialize()
     {
-        MediaPlayer.Play(LOAF.backgroundMusicTitle);
+        redWorker = new RedWorker()
+        {
+            Position = startingPosition,
+            Direction = Direction.Down,
+            Scale = 2f
+        };
+
+        MediaPlayer.Stop();
+        MediaPlayer.Play(LOAF.backgroundMusicOverworld);
         MediaPlayer.IsRepeating = true;
         base.Initialize();
     }
@@ -32,27 +55,64 @@ public class OverworldScene : Scene
     {
         _spriteBatch = new SpriteBatch(Game.GraphicsDevice);
         _tilemap = Content.Load<HexTilemap>("example");
+        redWorker.LoadContent(Content);
+        _font = Content.Load<SpriteFont>("vergilia");
     }
 
     public override void Update(GameTime gameTime)
     {
         var LOAF = Game as LOAF;
         if (LOAF == null) return;
-        cursor = new BoundingPoint(LOAF.InputManager.Position / 2);
+        cursor = new BoundingPoint(LOAF.InputManager.Position);
+        _tilemap.Update(LOAF.InputManager.Position, 5f, 50f);
 
-        
+        //save on F5 press
+        if (LOAF.InputManager.KeyClicked(Keys.F5))
+        {
+            SaveGame.SaveOverworld(redWorker.Position);
+            isSaved = true;
+        }
+
         if (LOAF.InputManager.LeftMouseClicked)
         {
+            redWorker.Position = _tilemap.GetHighlightedCenterVector();
+        }
 
+        // Return to title with Escape
+        if (LOAF.InputManager.KeyClicked(Keys.Escape))
+        {
+            LOAF.ChangeScene(new TitleScene(LOAF));
+            return;
         }
     }
 
     public override void Draw(GameTime gameTime)
     {
         Game.GraphicsDevice.Clear(Color.DarkSlateGray);
+        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(1), blendState: BlendState.AlphaBlend);
 
-        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(1));
-        _tilemap.Draw(gameTime, _spriteBatch, 2f, 30f);
+        _spriteBatch.DrawString(_font, "ESC to return, Left mouse to move, F5 to Save", new Vector2(30, 0), Color.Yellow, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+        _tilemap.Draw(gameTime, _spriteBatch, 5f, 50f);
+        if (isSaved && textFadeTimer < 6f)
+        {
+            if (textFadeTimer < 3f)
+            {
+                textFadeOpacity = 1f;
+            }
+            else
+            {
+                textFadeOpacity = 1f - ((textFadeTimer - 3f) / 3f);
+            }
+            _spriteBatch.DrawString(_font, "Game Saved", new Vector2(400, 0), Color.Yellow * textFadeOpacity, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+            textFadeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+        }
+        else if (isSaved && textFadeTimer >= 7f)
+        {
+            isSaved = false;
+            textFadeTimer = 0f;
+            textFadeOpacity = 1f;
+        }
+        redWorker.Draw(gameTime, _spriteBatch);
 
         _spriteBatch.End();
     }

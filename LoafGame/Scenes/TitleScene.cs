@@ -6,14 +6,15 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using System;
 using System.Reflection.Metadata;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrayNotify;
 
 namespace LoafGame.Scenes;
 
 public class TitleScene : Scene
 {
     private SpriteBatch _spriteBatch;
+    private Player _player;
 
-    private RedWorker redWorker;
     private Button startButton;
     private Button loadButton;
     private Button creditsButton;
@@ -21,6 +22,13 @@ public class TitleScene : Scene
 
     private SpriteFont friedolin;
     private SpriteFont exitText;
+
+    // Layer textures
+    private Texture2D _layer1;
+    private Texture2D _layer2;
+    private Texture2D _layer3;
+    private Texture2D _layer4;
+    private Texture2D _layer5;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TitleScene"/> class.
@@ -36,17 +44,21 @@ public class TitleScene : Scene
         float leftMargin = vw * 0.02f;
         float centerX = vw / 2;
 
-        redWorker = new RedWorker() { Position = new Vector2(leftMargin + vw * 0.0172f, vh * 0.45f),
-            Direction = Direction.Right,
-            Scale = 3f};
-
-        float buttonRowY = vh * 0.75f;
+        float buttonRowY = vh * 0.5f;
         float buttonSpacing = vw * 0.15f;
+
+        _player = new Player()
+        {
+            Position = new Vector2(centerX - buttonSpacing * 2, buttonRowY + buttonSpacing / 2),
+            Direction = Direction.Right,
+            Scale = 3f
+        };
 
         startButton = new Button() { Position = new Vector2(centerX - buttonSpacing, buttonRowY), Text = "Start" };
         loadButton = new Button() { Position = new Vector2(centerX, buttonRowY), Text = "Load" };
         creditsButton = new Button() { Position = new Vector2(centerX + buttonSpacing, buttonRowY), Text = "Credits" };
 
+        MediaPlayer.Stop();
         MediaPlayer.Play(LOAF.backgroundMusicTitle);
         MediaPlayer.IsRepeating = true;
         base.Initialize();
@@ -57,17 +69,23 @@ public class TitleScene : Scene
         _spriteBatch = new SpriteBatch(Game.GraphicsDevice);
         friedolin = Content.Load<SpriteFont>("friedolin");
         exitText = Content.Load<SpriteFont>("hamburger");
-        redWorker.LoadContent(Content);
+        _player.LoadContent(Content);
         startButton.LoadContent(Content);
         loadButton.LoadContent(Content);
         creditsButton.LoadContent(Content);
+
+        _layer1 = Game.Content.Load<Texture2D>("TitleLayersScaled/background_plains-Sheet1_scaled_3x");
+        _layer2 = Game.Content.Load<Texture2D>("TitleLayersScaled/background_plains-Sheet2_scaled_3x");
+        _layer3 = Game.Content.Load<Texture2D>("TitleLayersScaled/background_plains-Sheet3_scaled_3x");
+        _layer4 = Game.Content.Load<Texture2D>("TitleLayersScaled/background_plains-Sheet4_scaled_3x");
+        _layer5 = Game.Content.Load<Texture2D>("TitleLayersScaled/background_plains-Sheet5_scaled_3x");
     }
 
     public override void Update(GameTime gameTime)
     {
         var LOAF = Game as LOAF;
         if (LOAF == null) return;
-        redWorker.Update(gameTime);
+        _player.Update(gameTime);
         cursor = new BoundingPoint(LOAF.InputManager.Position);
         startButton.Update(cursor.CollidesWith(startButton.Bounds));
         loadButton.Update(cursor.CollidesWith(loadButton.Bounds));
@@ -83,6 +101,15 @@ public class TitleScene : Scene
             if (loadButton.Hover)
             {
                 loadButton.PlayClickSound();
+                // Try to load saved position and start overworld
+                if (SaveGame.TryLoadOverworld(out var save))
+                {
+                    LOAF.ChangeScene(new OverworldScene(LOAF, save));
+                }
+                else
+                {
+                    LOAF.ChangeScene(new OverworldScene(LOAF));
+                }
             }
             if (creditsButton.Hover)
             {
@@ -90,20 +117,40 @@ public class TitleScene : Scene
                 LOAF.ChangeScene(new CreditsScene(LOAF));
             }
         }
+
+        if (LOAF.InputManager.KeyClicked(Keys.Escape))
+        {
+            LOAF.Exit();
+        }
     }
 
     public override void Draw(GameTime gameTime)
     {
         Game.GraphicsDevice.Clear(Color.DarkSlateGray);
 
-        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(1), samplerState: SamplerState.PointClamp);
+        //anchor player at x=300
+        float playerX = MathHelper.Clamp(_player.Position.X, 300, 13600);
+        float offsetX = 300 - playerX;
+        float cameraX = -offsetX; // world camera position relative to anchor
+
+        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        DrawRepeatingLayer(_layer1, parallax: 0.2f, cameraX);
+        DrawRepeatingLayer(_layer2, parallax: 0.4f, cameraX);
+        DrawRepeatingLayer(_layer3, parallax: 0.6f, cameraX);
+        DrawRepeatingLayer(_layer4, parallax: 0.8f, cameraX);
+        DrawRepeatingLayer(_layer5, parallax: 1.0f, cameraX);
+        _spriteBatch.End();
+
+        _spriteBatch.Begin(transformMatrix: Matrix.CreateTranslation(offsetX, 0, 0), samplerState: SamplerState.PointClamp);
+        _player.Draw(gameTime, _spriteBatch);
+        _spriteBatch.End();
+
+        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
         float vw = Game.GraphicsDevice.Viewport.Width;
         float vh = Game.GraphicsDevice.Viewport.Height;
         float leftMargin = vw * 0.02f;
         float centerX = vw / 2;
-
-        redWorker.Draw(gameTime, _spriteBatch);
 
         startButton.Draw(_spriteBatch);
         loadButton.Draw(_spriteBatch);
@@ -112,10 +159,30 @@ public class TitleScene : Scene
         string title = "Life of a Foreman";
         Vector2 titleSize = friedolin.MeasureString(title);
         Vector2 titlePos = new Vector2(centerX - titleSize.X / 2f, vh * 0.12f);
-        _spriteBatch.DrawString(friedolin, title, titlePos, Color.Goldenrod);
+        _spriteBatch.DrawString(friedolin, title, titlePos, Color.Black);
 
-        _spriteBatch.DrawString(exitText, "Press ESC to Exit", new Vector2(leftMargin, vh * 0.0185f), Color.Beige);
+        _spriteBatch.DrawString(exitText, "Press ESC to Exit", new Vector2(leftMargin, vh * 0.0185f), Color.Black);
 
         _spriteBatch.End();
+    }
+
+    //draws a texture repeating for parallax scrolling
+    private void DrawRepeatingLayer(Texture2D texture, float parallax, float cameraX)
+    {
+        int vw = Game.GraphicsDevice.Viewport.Width;
+
+        int texW = texture.Width;
+        int y = 0; // align to top
+
+        float layerScroll = cameraX * parallax;
+
+        float scrollMod = layerScroll % texW;
+        if (scrollMod < 0) scrollMod += texW;
+        float startX = -scrollMod;
+
+        for (float x = startX; x < vw; x += texW)
+        {
+            _spriteBatch.Draw(texture, new Vector2(x, y), Color.White);
+        }
     }
 }

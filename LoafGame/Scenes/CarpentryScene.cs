@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using SharpDX.DXGI;
 using System;
 using System.IO;
@@ -80,7 +81,7 @@ public class CarpentryScene : Scene, IParticleEmitter
     private const int FRAME_HEIGHT = 16;
     private static readonly Vector2 HAMMER_ORIGIN = new Vector2(7f, 15f);
     private const float HAMMER_DRAW_SCALE = 5f;
-    private const float NAIL_DRAW_SCALE = 3f;
+    private const float NAIL_DRAW_SCALE = 4f;
 
     // two head circles for hammer
     private static readonly Vector2 HEAD_LEFT_SRC = new Vector2(5f, 3f);
@@ -115,6 +116,12 @@ public class CarpentryScene : Scene, IParticleEmitter
 
         fireballred = new FireballParticleSystem(loaf, this, "fireballred") { Emitting = false };
         loaf.Components.Add(fireballred);
+
+        MediaPlayer.Stop();
+        MediaPlayer.Volume = 0.5f;
+        MediaPlayer.Play(LOAF.backgroundMusicMinigame);
+        MediaPlayer.IsRepeating = true;
+        base.Initialize();
     }
 
     public override void LoadContent()
@@ -423,24 +430,6 @@ public class CarpentryScene : Scene, IParticleEmitter
             SpriteEffects.None,
             0f
         );
-        //draw the planks
-        for (int i = 0; i < nailIndex+2; i++)
-        {
-            _spriteBatch.Draw(
-                woodTexture,
-                new Vector2(
-                    i * 16*6 + 10,
-                    Game.GraphicsDevice.Viewport.Height / 2 - 63
-                    ),
-                null,
-                Color.White,
-                0f,
-                Vector2.Zero,
-                6f,
-                SpriteEffects.None,
-                0f
-            );
-        }
         //draw the nails
         for (int i = 0; i < nailIndex+1; i++)
         {
@@ -459,20 +448,37 @@ public class CarpentryScene : Scene, IParticleEmitter
                 0f
             );
         }
-
-        SpriteFont font = Content.Load<SpriteFont>("hamburger");
+        //draw the planks
+        for (int i = 0; i < nailIndex + 2; i++)
+        {
+            _spriteBatch.Draw(
+                woodTexture,
+                new Vector2(
+                    i * 16 * 6 + 10,
+                    Game.GraphicsDevice.Viewport.Height / 2 - 63
+                    ),
+                null,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                8f,
+                SpriteEffects.None,
+                0f
+            );
+        }
+        SpriteFont font = Content.Load<SpriteFont>("vergilia");
         float fontScale = 1f;
         _spriteBatch.DrawString(font, "ESC to return to title", new Vector2(10, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
-        _spriteBatch.DrawString(font, "CW: " + revolutionsCW.ToString(), new Vector2(110, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "CW: " + revolutionsCW.ToString(), new Vector2(200, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
-        _spriteBatch.DrawString(font, "CCW: " + revolutionsCCW.ToString(), new Vector2(170, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "CCW: " + revolutionsCCW.ToString(), new Vector2(300, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
-        _spriteBatch.DrawString(font, "Speed: " + ((int)angularVelocity).ToString(), new Vector2(230, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "Speed: " + ((int)angularVelocity).ToString(), new Vector2(400, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
-        _spriteBatch.DrawString(font, "Mouse Buttons to Rotate", new Vector2(290, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "Mouse Buttons to Rotate, Spacebar: DEBUG", new Vector2(500, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
-        _spriteBatch.DrawString(font, "Spacebar: DEBUG", new Vector2(290, 20), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        //_spriteBatch.DrawString(font, "Spacebar: DEBUG", new Vector2(600, 20), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
         if (nailHitCounter[2] >= 45)
         {
