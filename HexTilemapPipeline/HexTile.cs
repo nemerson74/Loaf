@@ -5,17 +5,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LoafGame
+namespace HexTilemapPipeline
 {
     public class HexTile
     {
-        enum TileType
+        public enum TileType
         {
             Grassland,
             Badland,
             Desert,
             Forest
         }
+
+        /// <summary>
+        /// The terrain of this tile
+        /// </summary>
+        public TileType Terrain { get; init; }
 
         /// <summary>
         /// The index of the tile in the tileset

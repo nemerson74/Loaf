@@ -49,6 +49,5 @@ namespace HexTilemapPipeline
         /// <summary> The tileset image filename </summary>
         [ContentSerializerIgnore]
         public String TilesetImageFilename;
-
     }
 }

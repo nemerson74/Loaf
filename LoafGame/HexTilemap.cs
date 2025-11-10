@@ -45,10 +45,52 @@ namespace LoafGame
         /// </summary>
         public int[] TileIndices { get; init; }
 
-
+        /// <summary>
+        /// Gets the collection of hexagonal tiles associated with the current instance.
+        /// </summary>
+        private HexTile[] hexTiles { get; set; }
 
         // Index in the map array (y * MapWidth + x) of the currently highlighted tile, or -1 if none
         private int highlightedTile = -1;
+
+        /// <summary>
+        /// Initializes the hexagonal tiles for the map.
+        /// </summary>
+        public void InitializeHexTiles()
+        {
+            hexTiles = new HexTile[MapWidth * MapHeight];
+            int _tileIndex = 0;
+            bool _leftColumn = false;
+            bool _rightColumn = false;
+            bool _topRow = false;
+            bool _bottomRow = false;
+            bool _oddRow = false;
+            for (int y = 0; y < MapHeight; y++)
+            {
+                for (int x = 0; x < MapWidth; x++)
+                {
+                    _tileIndex = TileIndices[y * MapWidth + x];
+                    _leftColumn = x == 0;
+                    _rightColumn = x == MapWidth - 1;
+                    _topRow = y == 0;
+                    _bottomRow = y == MapHeight - 1;
+                    _oddRow = (y+1) % 2 != 0;
+                    hexTiles[y * MapWidth + x] = new HexTile
+                    {
+                        TileIndex = _tileIndex,
+                        SurroundingTilesIndices = new int[] 
+                        { 
+                            ((_leftColumn && !_oddRow) || _topRow ) ? (y - 1) * MapWidth + (x - 1) : -1,
+                            (y - 1) * MapWidth + x,
+                            (y - 1) * MapWidth + (x + 1),
+                            y * MapWidth + (x - 1),
+                            y * MapWidth + (x + 1),
+                            (y + 1) * MapWidth + x
+                        }
+                    };
+                }
+            }
+        }
 
         /// <summary>
         /// Updates the tilemap state. Determines which tile the provided mouse position is closest to
