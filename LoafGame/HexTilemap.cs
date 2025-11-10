@@ -45,6 +45,8 @@ namespace LoafGame
         /// </summary>
         public int[] TileIndices { get; init; }
 
+
+
         // Index in the map array (y * MapWidth + x) of the currently highlighted tile, or -1 if none
         private int highlightedTile = -1;
 
@@ -64,7 +66,7 @@ namespace LoafGame
             }
 
             // for pointy-top hex tiles laid out in columns
-            float horizontalSpacing = TileWidth * 0.5f - 1;
+            float horizontalSpacing = TileWidth * 0.5f;
             float sideLength = TileHeight / 2f;
             float verticalSpacing = TileHeight + sideLength - 2; // full tile height between rows
 
@@ -75,7 +77,7 @@ namespace LoafGame
                 for (int x = 0; x < MapWidth; x++)
                 {
                     float posX = x * horizontalSpacing + horizontalOffset;
-                    float posY = y * verticalSpacing + ((x & 1) == 1 ? sideLength * 1.5f - 1f : 0f) + verticalOffset;
+                    float posY = y * verticalSpacing + ((x & 1) == 1 ? sideLength * 1.5f : 0f) + verticalOffset;
 
                     // center of this tile
                     float centerX = posX + TileWidth * 0.5f;

@@ -7,6 +7,7 @@ using System;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
+using System.Security.Policy;
 
 namespace LoafGame
 {
@@ -24,6 +25,11 @@ namespace LoafGame
         /// Input Manager to pass to the scenes.
         /// </summary>
         public InputManager InputManager { get; private set; }
+
+        /// <summary>
+        /// Input Manager to pass to the scenes.
+        /// </summary>
+        public float GameScale { get; private set; } = 1f;
 
         /// <summary>
         /// Gets the sound effect that is played when a button is hovered over.
@@ -59,6 +65,7 @@ namespace LoafGame
             //_graphics.IsFullScreen = true;
             _graphics.ApplyChanges();
             IsMouseVisible = true;
+            //Window.IsBorderless = true;
         }
 
         protected override void Initialize()
@@ -146,6 +153,14 @@ namespace LoafGame
             {
                 s_activeScene.Initialize();
             }
+        }
+
+        public void ChangeResolutionScale(float scale)
+        {
+            GameScale = scale;
+            _graphics.PreferredBackBufferWidth = (int)(960 * scale);
+            _graphics.PreferredBackBufferHeight = (int)(540 * scale);
+            _graphics.ApplyChanges();
         }
     }
 }

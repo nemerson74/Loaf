@@ -27,6 +27,11 @@ public class CarpentryScene : Scene, IParticleEmitter
     Random random = new Random();
     Vector2 shakeOffset = Vector2.Zero;
 
+    private float vw;
+    private float vh;
+    private float leftMargin;
+    private float centerX;
+
     private SpriteBatch _spriteBatch;
 
     //private BoundingPoint cursor;
@@ -88,7 +93,6 @@ public class CarpentryScene : Scene, IParticleEmitter
     private static readonly Vector2 HEAD_RIGHT_SRC = new Vector2(11f, 3f);
     private const float HEAD_CIRCLE_RADIUS = 2.3f; // in source pixels, will be scaled by HAMMER_DRAW_SCALE
 
-
     private float currentMaxVelocity = MAX_VELOCITY_1;
 
     // revolution tracking
@@ -109,13 +113,18 @@ public class CarpentryScene : Scene, IParticleEmitter
         prevAnchor = Vector2.Zero;
         prevAngle = angle;
 
-        var loaf = Game as LOAF;
-        if (loaf == null) return;
-        fireballs = new FireballParticleSystem(loaf, this, "fireballnormalgabe") { Emitting = false};
-        loaf.Components.Add(fireballs);
+        var LOAF = Game as LOAF;
+        if (LOAF == null) return;
+        fireballs = new FireballParticleSystem(LOAF, this, "fireballnormalgabe") { Emitting = false};
+        LOAF.Components.Add(fireballs);
 
-        fireballred = new FireballParticleSystem(loaf, this, "fireballred") { Emitting = false };
-        loaf.Components.Add(fireballred);
+        fireballred = new FireballParticleSystem(LOAF, this, "fireballred") { Emitting = false };
+        LOAF.Components.Add(fireballred);
+
+        vw = Game.GraphicsDevice.Viewport.Width / LOAF.GameScale;
+        vh = Game.GraphicsDevice.Viewport.Height / LOAF.GameScale;
+        leftMargin = vw * 0.02f;
+        centerX = vw / 2;
 
         MediaPlayer.Stop();
         MediaPlayer.Volume = 0.5f;
@@ -146,13 +155,13 @@ public class CarpentryScene : Scene, IParticleEmitter
 
     public override void Update(GameTime gameTime)
     {
-        var loaf = Game as LOAF;
-        if (loaf == null) return;
-        var input = loaf.InputManager;
+        var LOAF = Game as LOAF;
+        if (LOAF == null) return;
+        var input = LOAF.InputManager;
         debugFlag = input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Space);
 
         //follow the mouse
-        anchor = input.Position;
+        anchor = input.Position / LOAF.GameScale;
 
         //update head circle centers to follow the rotated/scaled hammer sprite
         float drawScale = HAMMER_DRAW_SCALE;
@@ -167,7 +176,7 @@ public class CarpentryScene : Scene, IParticleEmitter
         //update the nail bounds at current nail position
         nailBounds.Position = new Vector2(
             (nailIndex + 1) * 16 * 6 - 14,
-            Game.GraphicsDevice.Viewport.Height / 2 - 77 + nailHitCounter[nailIndex] * 1
+            vh * 0.90f - 10 + nailHitCounter[nailIndex] * 1
         );
 
         //delta time
@@ -213,7 +222,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                 revolutionsCCW = Math.Min(revolutionsCCW, 12);
                 revolutionsCW = 0;
                 if (Math.Abs(angularVelocity) > currentMaxVelocity * 0.7f)
-                    hammerWhoosh.Play(1f, Math.Max(1f - angularVelocity/12, 0.5f), 0f);
+                    hammerWhoosh.Play(1f, Math.Max(1f - Math.Abs(angularVelocity), 0.5f), 0f);
             }
         }
         else if (delta < 0f)
@@ -227,7 +236,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                 revolutionsCW = Math.Min(revolutionsCW, 12);
                 revolutionsCCW = 0;
                 if (Math.Abs(angularVelocity) > currentMaxVelocity * 0.7f)
-                    hammerWhoosh.Play(1f, Math.Max(1f + angularVelocity / 12, 0.5f), 0f);
+                    hammerWhoosh.Play(1f, Math.Max(1f - Math.Abs(angularVelocity) / 12, 0.5f), 0f);
             }
         }
         prevAngle = angle;
@@ -237,14 +246,14 @@ public class CarpentryScene : Scene, IParticleEmitter
         {
             currentMaxVelocity = MAX_VELOCITY_3;
             Velocity = headCircleLeft.Center - Position;
-            Position = headCircleLeft.Center;
+            Position = headCircleLeft.Center * LOAF.GameScale;
             hammerFrame = 2;
         }
         else if (revolutionsCW >= 3)
         {
             currentMaxVelocity = MAX_VELOCITY_2;
             Velocity = headCircleLeft.Center - Position;
-            Position = headCircleLeft.Center;
+            Position = headCircleLeft.Center * LOAF.GameScale;
             hammerFrame = 1;
         }
         else
@@ -257,14 +266,14 @@ public class CarpentryScene : Scene, IParticleEmitter
         {
             currentMaxVelocity = MAX_VELOCITY_3;
             Velocity = headCircleRight.Center  - Position;
-            Position = headCircleRight.Center;
+            Position = headCircleRight.Center * LOAF.GameScale;
             hammerFrame = 5;
         }
         else if (revolutionsCCW >= 3)
         {
             currentMaxVelocity = MAX_VELOCITY_2;
             Velocity = headCircleRight.Center - Position;
-            Position = headCircleRight.Center;
+            Position = headCircleRight.Center * LOAF.GameScale;
             hammerFrame = 4;
         }
         else
@@ -328,7 +337,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                 if (headCircleRight.CollidesWith(nailBounds))
                 {
                     lastNailHitTime = 0f;
-                    hammerHit.Play(1f, Math.Min(1f - angularVelocity / 12, 1f), 0f);
+                    hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
                     nailHitCounter[nailIndex] += (int)angularVelocity - 3;
                     if (nailHitCounter[nailIndex] >= 45)
                     {
@@ -346,7 +355,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                 if (headCircleLeft.CollidesWith(nailBounds))
                 {
                     lastNailHitTime = 0f;
-                    hammerHit.Play(1f, Math.Min(1f - angularVelocity / 12, 1f), 0f);
+                    hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
                     nailHitCounter[nailIndex] += -(int)angularVelocity - 3;
                     if (nailHitCounter[nailIndex] >= 45)
                     {
@@ -383,7 +392,21 @@ public class CarpentryScene : Scene, IParticleEmitter
         // Return to title with Escape
         if (input.IsKeyDown(Keys.Escape))
         {
-            LOAF.ChangeScene(new TitleScene(loaf));
+            fireballred.Emitting = false;
+            fireballs.Emitting = false;
+            if (fireballred != null)
+            {
+                LOAF.Components.Remove(fireballred);
+                fireballred.Dispose();
+                fireballred = null;
+            }
+            if (fireballs != null)
+            {
+                LOAF.Components.Remove(fireballs);
+                fireballs.Dispose();
+                fireballs = null;
+            }
+            LOAF.ChangeScene(new TitleScene(LOAF));
             return;
         }
     }
@@ -391,9 +414,9 @@ public class CarpentryScene : Scene, IParticleEmitter
     public override void Draw(GameTime gameTime)
     {
         Game.GraphicsDevice.Clear(Color.DarkSlateGray);
-        var loaf = Game as LOAF;
+        var LOAF = Game as LOAF;
         // combine scale and screen-shake translation into the view matrix
-        Matrix viewMatrix = Matrix.CreateScale(1f) * Matrix.CreateTranslation(shakeOffset.X, shakeOffset.Y, 0f);
+        Matrix viewMatrix = Matrix.CreateScale(LOAF.GameScale) * Matrix.CreateTranslation(shakeOffset.X, shakeOffset.Y, 0f);
         _spriteBatch.Begin(transformMatrix: viewMatrix, samplerState: SamplerState.PointClamp);
 
         Rectangle sourceRect = new Rectangle(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
@@ -437,7 +460,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                 nailTexture,
                 new Vector2(
                     (i + 1) * 16 * 6 - 14,
-                    Game.GraphicsDevice.Viewport.Height / 2 - 77 + nailHitCounter[i] * 1
+                    vh * 0.85f - 10 + nailHitCounter[i] * 1
                 ),
                 null,
                 Color.White,
@@ -455,7 +478,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                 woodTexture,
                 new Vector2(
                     i * 16 * 6 + 10,
-                    Game.GraphicsDevice.Viewport.Height / 2 - 63
+                    vh * 0.85f
                     ),
                 null,
                 Color.White,
@@ -468,17 +491,8 @@ public class CarpentryScene : Scene, IParticleEmitter
         }
         SpriteFont font = Content.Load<SpriteFont>("vergilia");
         float fontScale = 1f;
-        _spriteBatch.DrawString(font, "ESC to return to title", new Vector2(10, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
-
-        _spriteBatch.DrawString(font, "CW: " + revolutionsCW.ToString(), new Vector2(200, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
-
-        _spriteBatch.DrawString(font, "CCW: " + revolutionsCCW.ToString(), new Vector2(300, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
-
-        _spriteBatch.DrawString(font, "Speed: " + ((int)angularVelocity).ToString(), new Vector2(400, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
-
-        _spriteBatch.DrawString(font, "Mouse Buttons to Rotate, Spacebar: DEBUG", new Vector2(500, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
-
-        //_spriteBatch.DrawString(font, "Spacebar: DEBUG", new Vector2(600, 20), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "Mouse Buttons to Rotate, Spacebar: DEBUG", new Vector2(vw * 0.7f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "ESC to return to title", new Vector2(vw * 0.02f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
         if (nailHitCounter[2] >= 45)
         {
@@ -490,6 +504,12 @@ public class CarpentryScene : Scene, IParticleEmitter
             DrawCircleOutline(headCircleLeft.Center, headCircleLeft.Radius, Color.Red);
             DrawCircleOutline(headCircleRight.Center, headCircleRight.Radius, Color.Red);
             DrawRectangleOutline(nailBounds, Color.Cyan);
+
+            _spriteBatch.DrawString(font, "CW: " + revolutionsCW.ToString(), new Vector2(vw * 0.22f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+
+            _spriteBatch.DrawString(font, "CCW: " + revolutionsCCW.ToString(), new Vector2(vw * 0.32f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+
+            _spriteBatch.DrawString(font, "Speed: " + ((int)angularVelocity).ToString(), new Vector2(vw * 0.42f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
         }
 
         _spriteBatch.End();

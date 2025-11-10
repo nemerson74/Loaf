@@ -20,6 +20,11 @@ public class OverworldScene : Scene
     private float textFadeTimer = 0f;
     private float textFadeOpacity = 1f;
 
+    private float vw;
+    private float vh;
+    private float leftMargin;
+    private float centerX;
+
     private Vector2 startingPosition = Vector2.Zero;
 
     /// <summary>
@@ -44,7 +49,11 @@ public class OverworldScene : Scene
             Direction = Direction.Down,
             Scale = 2f
         };
-
+        var LOAF = Game as LOAF;
+        vw = Game.GraphicsDevice.Viewport.Width / LOAF.GameScale;
+        vh = Game.GraphicsDevice.Viewport.Height / LOAF.GameScale;
+        leftMargin = vw * 0.02f;
+        centerX = vw / 2;
         MediaPlayer.Stop();
         MediaPlayer.Play(LOAF.backgroundMusicOverworld);
         MediaPlayer.IsRepeating = true;
@@ -54,7 +63,7 @@ public class OverworldScene : Scene
     public override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(Game.GraphicsDevice);
-        _tilemap = Content.Load<HexTilemap>("example");
+        _tilemap = Content.Load<HexTilemap>("tilemapkey");
         redWorker.LoadContent(Content);
         _font = Content.Load<SpriteFont>("vergilia");
     }
@@ -63,8 +72,8 @@ public class OverworldScene : Scene
     {
         var LOAF = Game as LOAF;
         if (LOAF == null) return;
-        cursor = new BoundingPoint(LOAF.InputManager.Position);
-        _tilemap.Update(LOAF.InputManager.Position, 5f, 50f);
+        //cursor = new BoundingPoint(LOAF.InputManager.Position / LOAF.GameScale);
+        _tilemap.Update(LOAF.InputManager.Position / LOAF.GameScale, 5f / LOAF.GameScale, 50f / LOAF.GameScale);
 
         //save on F5 press
         if (LOAF.InputManager.KeyClicked(Keys.F5))
@@ -88,11 +97,12 @@ public class OverworldScene : Scene
 
     public override void Draw(GameTime gameTime)
     {
+        var LOAF = Game as LOAF;
         Game.GraphicsDevice.Clear(Color.DarkSlateGray);
-        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(1), blendState: BlendState.AlphaBlend);
+        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(LOAF.GameScale), blendState: BlendState.AlphaBlend);
 
         _spriteBatch.DrawString(_font, "ESC to return, Left mouse to move, F5 to Save", new Vector2(30, 0), Color.Yellow, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-        _tilemap.Draw(gameTime, _spriteBatch, 5f, 50f);
+        _tilemap.Draw(gameTime, _spriteBatch, 5f / LOAF.GameScale, 50f / LOAF.GameScale);
         if (isSaved && textFadeTimer < 6f)
         {
             if (textFadeTimer < 3f)

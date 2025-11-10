@@ -15,11 +15,20 @@ public class CreditsScene : Scene
     private float scrollOffset = 0f;
     private float scrollSpeed = 30f;
 
+    private float vw;
+    private float vh;
+    private float leftMargin;
+    private float centerX;
+
     public CreditsScene(Game game) : base(game) { }
 
     public override void Initialize()
     {
-
+        var LOAF = Game as LOAF;
+        vw = Game.GraphicsDevice.Viewport.Width / LOAF.GameScale;
+        vh = Game.GraphicsDevice.Viewport.Height / LOAF.GameScale;
+        leftMargin = vw * 0.02f;
+        centerX = vw / 2;
         base.Initialize();
     }
 
@@ -66,8 +75,9 @@ public class CreditsScene : Scene
         // Clamp bottom
         if (!string.IsNullOrEmpty(creditsText))
         {
+            var LOAF = Game as LOAF;
             var font = Content.Load<SpriteFont>("vergilia");
-            float fontScale = 0.85f; //needed for scrolling scaling
+            float fontScale = 0.85f * LOAF.GameScale; //needed for scrolling scaling
             float lineHeight = font.LineSpacing * fontScale;
             string[] lines = creditsText.Split('\n');
             float totalHeight = lines.Length * lineHeight;
@@ -78,12 +88,13 @@ public class CreditsScene : Scene
 
     public override void Draw(GameTime gameTime)
     {
+        var LOAF = Game as LOAF;
         Game.GraphicsDevice.Clear(Color.Black);
-        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(1));
+        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(LOAF.GameScale));
 
         SpriteFont font = Content.Load<SpriteFont>("vergilia");
         float fontScale = 1f;
-        Vector2 position = new Vector2(20, 20 + scrollOffset);
+        Vector2 position = new Vector2(leftMargin, vh * 0.0185f * 3 + scrollOffset);
         float lineHeight = font.LineSpacing * fontScale;
 
         if (!string.IsNullOrEmpty(creditsText))
@@ -95,7 +106,7 @@ public class CreditsScene : Scene
                 position.Y += lineHeight;
             }
         }
-        _spriteBatch.DrawString(font, "Right click to return, Arrows up and down to scroll", new Vector2(20, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "Right click to return, Arrows up and down to scroll", new Vector2(leftMargin, vh * 0.0185f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
         _spriteBatch.End();
     }

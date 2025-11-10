@@ -160,6 +160,12 @@
 /processorParam:TextureFormat=Color
 /build:nail.png
 
+#begin tilemapkey.tmap
+/importer:BasicTilemapImporter
+/processor:HexTilemapProcessor
+/processorParam:Scale=0.5
+/build:tilemapkey.tmap
+
 #begin TitleLayers/background_plains-Sheet1.png
 /importer:TextureImporter
 /processor:TextureProcessor

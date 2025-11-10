@@ -15,15 +15,21 @@ public class MinigameSelectorScene : Scene
     private Button carpentryButton;
     private Button masonryButton;
     private BoundingPoint cursor;
+
+    private float vw;
+    private float vh;
+    private float leftMargin;
+    private float centerX;
+
     public MinigameSelectorScene(Game game) : base(game) { }
 
     public override void Initialize()
     {
-        float vw = Game.GraphicsDevice.Viewport.Width;
-        float vh = Game.GraphicsDevice.Viewport.Height;
-
-        float leftMargin = vw * 0.02f;
-        float centerX = vw / 2;
+        var LOAF = Game as LOAF;
+        vw = Game.GraphicsDevice.Viewport.Width / LOAF.GameScale;
+        vh = Game.GraphicsDevice.Viewport.Height / LOAF.GameScale;
+        leftMargin = vw * 0.02f;
+        centerX = vw / 2;
 
         float buttonRowY = vh * 0.5f;
         float buttonSpacing = vw * 0.15f;
@@ -44,11 +50,11 @@ public class MinigameSelectorScene : Scene
 
     public override void Update(GameTime gameTime)
     {
-        var loaf = Game as LOAF;
-        if (loaf == null) return;
-        var input = loaf.InputManager;
+        var LOAF = Game as LOAF;
+        if (LOAF == null) return;
+        var input = LOAF.InputManager;
 
-        cursor = new BoundingPoint(input.Position);
+        cursor = new BoundingPoint(input.Position / LOAF.GameScale);
         newGameButton.Update(cursor.CollidesWith(newGameButton.Bounds));
         carpentryButton.Update(cursor.CollidesWith(carpentryButton.Bounds));
         masonryButton.Update(cursor.CollidesWith(masonryButton.Bounds));
@@ -56,13 +62,13 @@ public class MinigameSelectorScene : Scene
         // Right click to return
         if (input.PreviousRightMouseState == ButtonState.Released && input.CurrentRightMouseState == ButtonState.Pressed)
         {
-            LOAF.ChangeScene(new TitleScene(loaf));
+            LOAF.ChangeScene(new TitleScene(LOAF));
             return;
         }
 
         if (input.KeyClicked(Keys.Escape))
         {
-            LOAF.ChangeScene(new TitleScene(loaf));
+            LOAF.ChangeScene(new TitleScene(LOAF));
             return;
         }
 
@@ -72,12 +78,12 @@ public class MinigameSelectorScene : Scene
             if (newGameButton.Hover)
             {
                 newGameButton.PlayClickSound();
-                LOAF.ChangeScene(new OverworldScene(loaf));
+                LOAF.ChangeScene(new OverworldScene(LOAF));
             }
             if (carpentryButton.Hover)
             {
                 carpentryButton.PlayClickSound();
-                LOAF.ChangeScene(new CarpentryScene(loaf));
+                LOAF.ChangeScene(new CarpentryScene(LOAF));
             }
             if (masonryButton.Hover)
             {
@@ -89,20 +95,17 @@ public class MinigameSelectorScene : Scene
 
     public override void Draw(GameTime gameTime)
     {
-        float vw = Game.GraphicsDevice.Viewport.Width;
-        float vh = Game.GraphicsDevice.Viewport.Height;
-        float leftMargin = vw * 0.02f;
-        float centerX = vw / 2;
+        var LOAF = Game as LOAF;
 
         Game.GraphicsDevice.Clear(Color.DarkSlateGray);
-        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(1));
+        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(LOAF.GameScale));
         newGameButton.Draw(_spriteBatch);
         carpentryButton.Draw(_spriteBatch);
         masonryButton.Draw(_spriteBatch);
         SpriteFont font = Content.Load<SpriteFont>("vergilia");
         float fontScale = 1f;
 
-        _spriteBatch.DrawString(font, "Right click to return", new Vector2(20, 0), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "Right click to return", new Vector2(leftMargin, vh * 0.0185f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
         string mainText = "Main Game (WIP)";
         Vector2 titleSize = font.MeasureString(mainText);

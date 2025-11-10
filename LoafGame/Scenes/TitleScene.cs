@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using SharpDX.Direct2D1.Effects;
 using System;
 using System.Reflection.Metadata;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrayNotify;
@@ -12,8 +13,16 @@ namespace LoafGame.Scenes;
 
 public class TitleScene : Scene
 {
+    private float[] resolutions = new float[] { 1f, 2f };
+    private int currentResolutionIndex = 0;
+
     private SpriteBatch _spriteBatch;
     private Player _player;
+
+    private float vw;
+    private float vh;
+    private float leftMargin;
+    private float centerX;
 
     private Button startButton;
     private Button loadButton;
@@ -38,8 +47,9 @@ public class TitleScene : Scene
 
     public override void Initialize()
     {
-        float vw = Game.GraphicsDevice.Viewport.Width;
-        float vh = Game.GraphicsDevice.Viewport.Height;
+        var LOAF = Game as LOAF;
+        float vw = Game.GraphicsDevice.Viewport.Width / LOAF.GameScale;
+        float vh = Game.GraphicsDevice.Viewport.Height / LOAF.GameScale;
 
         float leftMargin = vw * 0.02f;
         float centerX = vw / 2;
@@ -49,12 +59,12 @@ public class TitleScene : Scene
 
         _player = new Player()
         {
-            Position = new Vector2(centerX - buttonSpacing * 2, buttonRowY + buttonSpacing / 2),
+            Position = new Vector2((centerX - buttonSpacing * 2) * LOAF.GameScale, (buttonRowY + buttonSpacing / 2) * LOAF.GameScale),
             Direction = Direction.Right,
-            Scale = 3f
+            Scale = 3f * LOAF.GameScale
         };
 
-        startButton = new Button() { Position = new Vector2(centerX - buttonSpacing, buttonRowY), Text = "Start" };
+        startButton = new Button() { Position = new Vector2(centerX - buttonSpacing, buttonRowY), Text = "Start"};
         loadButton = new Button() { Position = new Vector2(centerX, buttonRowY), Text = "Load" };
         creditsButton = new Button() { Position = new Vector2(centerX + buttonSpacing, buttonRowY), Text = "Credits" };
 
@@ -86,7 +96,7 @@ public class TitleScene : Scene
         var LOAF = Game as LOAF;
         if (LOAF == null) return;
         _player.Update(gameTime);
-        cursor = new BoundingPoint(LOAF.InputManager.Position);
+        cursor = new BoundingPoint(LOAF.InputManager.Position / LOAF.GameScale);
         startButton.Update(cursor.CollidesWith(startButton.Bounds));
         loadButton.Update(cursor.CollidesWith(loadButton.Bounds));
         creditsButton.Update(cursor.CollidesWith(creditsButton.Bounds));
@@ -122,18 +132,36 @@ public class TitleScene : Scene
         {
             LOAF.Exit();
         }
+        if (LOAF.InputManager.KeyClicked(Keys.F10))
+        {
+            _player.Scale /= LOAF.GameScale;
+            _player.Position = new Vector2(_player.Position.X / LOAF.GameScale, _player.Position.Y / LOAF.GameScale);
+
+            currentResolutionIndex = (currentResolutionIndex + 1) % resolutions.Length;
+            LOAF.ChangeResolutionScale(resolutions[currentResolutionIndex]);
+
+            _player.Scale *= LOAF.GameScale;
+            _player.Position = new Vector2(_player.Position.X * LOAF.GameScale, _player.Position.Y * LOAF.GameScale);
+        }
     }
 
     public override void Draw(GameTime gameTime)
     {
+        var LOAF = Game as LOAF;
+        if (LOAF == null) return;
+        float vw = Game.GraphicsDevice.Viewport.Width / LOAF.GameScale;
+        float vh = Game.GraphicsDevice.Viewport.Height / LOAF.GameScale;
+        float leftMargin = vw * 0.02f;
+        float centerX = vw / 2;
         Game.GraphicsDevice.Clear(Color.DarkSlateGray);
 
         //anchor player at x=300
         float playerX = MathHelper.Clamp(_player.Position.X, 300, 13600);
         float offsetX = 300 - playerX;
         float cameraX = -offsetX; // world camera position relative to anchor
-
-        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        Matrix transform =
+            Matrix.CreateScale(LOAF.GameScale);
+        _spriteBatch.Begin(transformMatrix: transform, samplerState: SamplerState.PointClamp);
         DrawRepeatingLayer(_layer1, parallax: 0.2f, cameraX);
         DrawRepeatingLayer(_layer2, parallax: 0.4f, cameraX);
         DrawRepeatingLayer(_layer3, parallax: 0.6f, cameraX);
@@ -145,13 +173,7 @@ public class TitleScene : Scene
         _player.Draw(gameTime, _spriteBatch);
         _spriteBatch.End();
 
-        _spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-
-        float vw = Game.GraphicsDevice.Viewport.Width;
-        float vh = Game.GraphicsDevice.Viewport.Height;
-        float leftMargin = vw * 0.02f;
-        float centerX = vw / 2;
-
+        _spriteBatch.Begin(transformMatrix: transform, samplerState: SamplerState.PointClamp);
         startButton.Draw(_spriteBatch);
         loadButton.Draw(_spriteBatch);
         creditsButton.Draw(_spriteBatch);
@@ -161,7 +183,7 @@ public class TitleScene : Scene
         Vector2 titlePos = new Vector2(centerX - titleSize.X / 2f, vh * 0.12f);
         _spriteBatch.DrawString(friedolin, title, titlePos, Color.Black);
 
-        _spriteBatch.DrawString(exitText, "Press ESC to Exit", new Vector2(leftMargin, vh * 0.0185f), Color.Black);
+        _spriteBatch.DrawString(exitText, "Press ESC to Exit, Press F10 to change screen resolution", new Vector2(leftMargin, vh * 0.0185f), Color.Black);
 
         _spriteBatch.End();
     }

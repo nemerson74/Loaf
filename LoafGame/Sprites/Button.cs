@@ -52,6 +52,15 @@ namespace LoafGame
         {
             get { return bounds; }
         }
+
+        /// <summary>
+        /// The scale of the button
+        /// </summary>
+        public float Scale
+        {
+            get { return scale/2; }
+            set { scale = value * 2; }
+        }
         #endregion
 
         /// <summary>
