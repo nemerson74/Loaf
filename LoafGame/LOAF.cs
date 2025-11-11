@@ -42,6 +42,16 @@ namespace LoafGame
         public static SoundEffect ButtonClickSound { get; private set; }
 
         /// <summary>
+        /// Gets the sound effect that plays when a button is clicked.
+        /// </summary>
+        public static SoundEffect DeniedSound { get; private set; }
+
+        /// <summary>
+        /// Gets the sound effect that plays when the character moves tiles.
+        /// </summary>
+        public static SoundEffect FleeSound { get; private set; }
+
+        /// <summary>
         /// Background music for title screen.
         /// </summary>
         public static Song backgroundMusicTitle { get; private set; }
@@ -81,6 +91,8 @@ namespace LoafGame
         {
             ButtonHoverSound = Content.Load<SoundEffect>("001_Hover_01");
             ButtonClickSound = Content.Load<SoundEffect>("013_Confirm_03");
+            DeniedSound = Content.Load<SoundEffect>("033_Denied_03");
+            FleeSound = Content.Load<SoundEffect>("51_Flee_02");
             backgroundMusicTitle = Content.Load<Song>("05 A joyfull get together in the royal chambers_[cut_41sec]");
             backgroundMusicOverworld = Content.Load<Song>("04 Heroes theme - Ouverture of Valor_[cut_84sec]");
             backgroundMusicMinigame = Content.Load<Song>("02 The Dark Lord - upbeat version_[cut_60sec]");

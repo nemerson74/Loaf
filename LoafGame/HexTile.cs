@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -9,18 +11,21 @@ namespace LoafGame
 {
     public class HexTile
     {
-        enum TileType
-        {
-            Grassland,
-            Badland,
-            Desert,
-            Forest
-        }
+
+        /// <summary>
+        /// Gets the type of terrain represented by this tile.
+        /// </summary>
+        public Enums.TileType Terrain { get; init; }
 
         /// <summary>
         /// The index of the tile in the tileset
         /// </summary>
         public int TileIndex { get; init; }
+
+        /// <summary>
+        /// Gets the center point of the object as a two-dimensional vector.
+        /// </summary>
+        public Vector2 Center { get; set; } = Vector2.Zero;
 
         /// <summary>
         /// Gets the indices of the tiles surrounding the current tile.
@@ -36,7 +41,7 @@ namespace LoafGame
         /// <summary>
         /// Indicates whether the tile is walkable.
         /// </summary>
-        public bool IsWalkable { get; init; } = false;
+        public bool IsWalkable { get; set; } = true;
 
         /// <summary>
         /// Indicates whether the tile has a player on it.

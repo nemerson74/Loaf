@@ -50,46 +50,110 @@ namespace LoafGame
         /// </summary>
         private HexTile[] hexTiles { get; set; }
 
+        /// <summary>
+        /// Gets the collection of centers tiles associated with the tiles.
+        /// </summary>
+        private Vector2[] Centers { get; set; }
+
         // Index in the map array (y * MapWidth + x) of the currently highlighted tile, or -1 if none
-        private int highlightedTile = -1;
+        private int highlightedTile = 0;
 
         /// <summary>
         /// Initializes the hexagonal tiles for the map.
         /// </summary>
-        public void InitializeHexTiles()
+        public void InitializeHexTiles(float horizontalOffset, float verticalOffset, int startingTile)
         {
+            highlightedTile = startingTile;
             hexTiles = new HexTile[MapWidth * MapHeight];
+            Centers = new Vector2[MapWidth * MapHeight];
+
+            float horizontalSpacing = TileWidth * 0.5f;
+            float sideLength = TileHeight / 2f;
+            float verticalSpacing = TileHeight + sideLength - 2;
+
             int _tileIndex = 0;
             bool _leftColumn = false;
             bool _rightColumn = false;
             bool _topRow = false;
             bool _bottomRow = false;
             bool _oddRow = false;
+            int _thisIndex = 0;
             for (int y = 0; y < MapHeight; y++)
             {
                 for (int x = 0; x < MapWidth; x++)
                 {
-                    _tileIndex = TileIndices[y * MapWidth + x];
-                    _leftColumn = x == 0;
-                    _rightColumn = x == MapWidth - 1;
-                    _topRow = y == 0;
-                    _bottomRow = y == MapHeight - 1;
-                    _oddRow = (y+1) % 2 != 0;
-                    hexTiles[y * MapWidth + x] = new HexTile
+                    _thisIndex = y * MapWidth + x;
+
+                    _tileIndex = TileIndices[_thisIndex];
+                    Enums.TileType _terrain = Enums.TileType.Grassland;
+                    if (_tileIndex == 1)
                     {
-                        TileIndex = _tileIndex,
-                        SurroundingTilesIndices = new int[] 
-                        { 
-                            ((_leftColumn && !_oddRow) || _topRow ) ? (y - 1) * MapWidth + (x - 1) : -1,
-                            (y - 1) * MapWidth + x,
-                            (y - 1) * MapWidth + (x + 1),
-                            y * MapWidth + (x - 1),
-                            y * MapWidth + (x + 1),
-                            (y + 1) * MapWidth + x
-                        }
-                    };
+                        _terrain = Enums.TileType.Grassland;
+                    }
+                    else if (_tileIndex == 3)
+                    {
+                        _terrain = Enums.TileType.Badland;
+                    }
+                    else if (_tileIndex == 5)
+                    {
+                        _terrain = Enums.TileType.Desert;
+                    }
+                    else
+                    {
+                        _terrain = Enums.TileType.Forest;
+                    }
+
+                    float posX = x * horizontalSpacing + horizontalOffset;
+                    float posY = y * verticalSpacing + ((x & 1) == 1 ? sideLength * 1.5f : 0f) + verticalOffset;
+
+                    // center of this tile
+                    float centerX = posX + TileWidth * 0.5f;
+                    float centerY = posY + TileHeight * 0.5f;
+                    Centers[y * MapWidth + x] = new Vector2(centerX, centerY);
+                    _leftColumn = x == 0 || x == 1;
+                    _rightColumn = x == MapWidth - 1 || x == MapWidth -2;
+                    _topRow = y == 0 && x % 2 == 0;
+                    _bottomRow = y == MapHeight - 1 && x % 2 != 0;
+                    _oddRow = (_thisIndex - y * MapWidth) % 2 != 0;
+                    if (_oddRow)
+                    {
+                        hexTiles[_thisIndex] = new HexTile
+                        {
+                            TileIndex = _tileIndex,
+                            SurroundingTilesIndices = new int[]
+                            {
+                                _topRow ? -1 : _thisIndex - 1,
+                                _topRow ? -1 : _thisIndex + 1,
+                                _rightColumn ? -1 : _thisIndex + 2,
+                                _bottomRow ? -1 : MapWidth + _thisIndex + 1,
+                                _bottomRow ? -1 : MapWidth + _thisIndex - 1,
+                                _leftColumn ? -1 : _thisIndex - 2
+                            },
+                            Terrain = _terrain
+                        };
+                    }
+                    else
+                    {
+                        hexTiles[_thisIndex] = new HexTile
+                        {
+                            TileIndex = _tileIndex,
+                            SurroundingTilesIndices = new int[]
+                            {
+                                (_topRow || _leftColumn) ? -2 : _thisIndex - 1 - MapWidth,
+                                (_topRow || _rightColumn) ? -2 : _thisIndex + 1 - MapWidth,
+                                _rightColumn ? -2 : _thisIndex + 2,
+                                (_rightColumn) ? -2 : _thisIndex + 1,
+                                (_leftColumn) ? -2 : _thisIndex - 1,
+                                _leftColumn ? -2 : _thisIndex - 2
+                            },
+                            Terrain = _terrain
+                        };
+                    }
+
+                    hexTiles[_thisIndex].Center = new Vector2(centerX, centerY);
                 }
             }
+            MovePlayer();
         }
 
         /// <summary>
@@ -107,23 +171,15 @@ namespace LoafGame
                 return;
             }
 
-            // for pointy-top hex tiles laid out in columns
-            float horizontalSpacing = TileWidth * 0.5f;
-            float sideLength = TileHeight / 2f;
-            float verticalSpacing = TileHeight + sideLength - 2; // full tile height between rows
-
             float bestDistSq = float.MaxValue;
             int bestIndex = -1;
             for (int y = 0; y < MapHeight; y++)
             {
                 for (int x = 0; x < MapWidth; x++)
                 {
-                    float posX = x * horizontalSpacing + horizontalOffset;
-                    float posY = y * verticalSpacing + ((x & 1) == 1 ? sideLength * 1.5f : 0f) + verticalOffset;
-
                     // center of this tile
-                    float centerX = posX + TileWidth * 0.5f;
-                    float centerY = posY + TileHeight * 0.5f;
+                    float centerX = Centers[y * MapWidth + x].X;
+                    float centerY = Centers[y * MapWidth + x].Y;
 
                     float dx = mousePosition.X - centerX;
                     float dy = mousePosition.Y - centerY;
@@ -136,7 +192,6 @@ namespace LoafGame
                     }
                 }
             }
-
             highlightedTile = bestIndex;
         }
 
@@ -150,7 +205,7 @@ namespace LoafGame
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch, float horizontalOffset, float verticalOffset)
         {
             //for pointy-top hex tiles laid out in columns
-            float horizontalSpacing = TileWidth * 0.5f - 1;
+            float horizontalSpacing = TileWidth * 0.5f;
             float sideLength = TileHeight / 2f;
             float verticalSpacing = TileHeight + sideLength - 2; // full tile height between rows
 
@@ -167,23 +222,42 @@ namespace LoafGame
 
                     //odd columns are offset vertically by half a tile.
                     float posX = x * horizontalSpacing + horizontalOffset;
-                    float posY = y * verticalSpacing + ((x & 1) == 1 ? sideLength * 1.5f - 1f : 0f) + verticalOffset;
+                    float posY = y * verticalSpacing + ((x & 1) == 1 ? sideLength * 1.5f : 0f) + verticalOffset;
 
                     // If this map cell is the highlighted one, tint it green
                     int mapCellIndex = y * MapWidth + x;
-                    Color tint = (mapCellIndex == highlightedTile) ? Color.LightGreen : Color.White;
+                    Color tint = Color.White;
+                    if (mapCellIndex == highlightedTile)
+                    {
+                        if (hexTiles[mapCellIndex].IsWalkable)
+                        {
+                            tint = Color.LightGreen;
+                        }
+                        else
+                        {
+                            if (hexTiles[mapCellIndex].HasPlayer)
+                            {
+                                tint = Color.White;
+                            }
+                            else
+                            {
+                                tint = Color.LightGray;
+                            }
+                        }
+                    }
+                        //Color tint = (mapCellIndex == highlightedTile) ? Color.LightGreen : Color.White;
 
-                    spriteBatch.Draw(
-                        TilesetTexture,
-                        new Rectangle(
-                            (int)posX,
-                            (int)posY,
-                            TileWidth,
-                            TileHeight
-                            ),
-                        Tiles[index],
-                        tint
-                        );
+                        spriteBatch.Draw(
+                            TilesetTexture,
+                            new Rectangle(
+                                (int)posX,
+                                (int)posY,
+                                TileWidth,
+                                TileHeight
+                                ),
+                            Tiles[index],
+                            tint
+                            );
                 }
             }
         }
@@ -196,19 +270,78 @@ namespace LoafGame
         public Vector2 GetHighlightedCenterVector()
         {
             if (highlightedTile == -1) return Vector2.Zero;
+            return hexTiles[highlightedTile].Center;
+        }
 
-            int x = highlightedTile % MapWidth;
-            int y = highlightedTile / MapWidth;
+        /// <summary>
+        /// Moves the player to the highlighted tile.
+        /// </summary>
+        public bool MovePlayer()
+        {
+            if (highlightedTile == -1) return false;
+            if (!hexTiles[highlightedTile].IsWalkable)
+            {
+                return false;
+            }
+            foreach (HexTile tile in hexTiles)
+            {
+                tile.HasPlayer = false;
+                tile.IsWalkable = false;
+            }
+            hexTiles[highlightedTile].HasPlayer = true;
+            foreach (int index in hexTiles[highlightedTile].SurroundingTilesIndices)
+            {
+                if (index >= 0)
+                {
+                    hexTiles[index].IsWalkable = true;
+                }
+            }
 
-            // Calculate the center position of the highlighted tile
-            float horizontalSpacing = TileWidth * 0.5f - 1;
-            float sideLength = TileHeight / 2f;
-            float verticalSpacing = TileHeight + sideLength - 2;
+            return true;
+        }
 
-            float posX = x * horizontalSpacing;
-            float posY = y * verticalSpacing + ((x & 1) == 1 ? sideLength * 1.5f - 1f : 0f);
+        public Enums.TileType GetTileTerrain(int index)
+        {
+            if (index == -1) return Enums.TileType.Forest;
+            return hexTiles[index].Terrain;
+        }
 
-            return new Vector2(posX + TileWidth * 0.5f, posY + TileHeight * 0.5f);
+        /// <summary>
+        /// Moves the player to the highlighted tile.
+        /// </summary>
+        public int GetPlayerIndex()
+        {
+            for (int i = 0; i < hexTiles.Length; i++)
+            {
+                if (hexTiles[i].HasPlayer == true) return i;
+            }
+            return -1;
+        }
+
+        public Vector2 GetCenter(int index)
+        {
+            if (index == -1) return Vector2.Zero;
+            return Centers[index];
+        }
+
+        public int[] GetSurrounding(int index)
+        {
+            if (index == -1) return new int[] { 0, 0, 0, 0, 0, 0 };
+            return new int[]
+            {
+                hexTiles[index].SurroundingTilesIndices[0],
+                hexTiles[index].SurroundingTilesIndices[1],
+                hexTiles[index].SurroundingTilesIndices[2],
+                hexTiles[index].SurroundingTilesIndices[3],
+                hexTiles[index].SurroundingTilesIndices[4],
+                hexTiles[index].SurroundingTilesIndices[5]
+            };
+        }
+
+        public int GetHighlightedTile()
+        {
+            return highlightedTile;
         }
     }
+
 }

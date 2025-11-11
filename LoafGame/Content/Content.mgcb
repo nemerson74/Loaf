@@ -32,6 +32,12 @@
 /processorParam:Quality=Best
 /build:02 The Dark Lord - upbeat version_[cut_60sec].wav
 
+#begin 033_Denied_03.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:033_Denied_03.wav
+
 #begin 04 Heroes theme - Ouverture of Valor_[cut_84sec].wav
 /importer:WavImporter
 /processor:SongProcessor
@@ -55,6 +61,12 @@
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:39_Block_03.wav
+
+#begin 51_Flee_02.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:51_Flee_02.wav
 
 #begin BALL.png
 /importer:TextureImporter
