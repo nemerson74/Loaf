@@ -104,6 +104,7 @@ public class CarpentryScene : Scene, IParticleEmitter
     private Texture2D pixel;
     private FireballParticleSystem fireballred;
     private FireballParticleSystem fireballs;
+    Coin coin;
 
     public CarpentryScene(Game game) : base(game) { }
 
@@ -130,6 +131,8 @@ public class CarpentryScene : Scene, IParticleEmitter
         MediaPlayer.Volume = 0.5f;
         MediaPlayer.Play(LOAF.backgroundMusicMinigame);
         MediaPlayer.IsRepeating = true;
+
+        coin = new Coin(LOAF);
         base.Initialize();
     }
 
@@ -159,6 +162,7 @@ public class CarpentryScene : Scene, IParticleEmitter
         if (LOAF == null) return;
         var input = LOAF.InputManager;
         debugFlag = input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Space);
+        coin.Update(gameTime);
 
         //follow the mouse
         anchor = input.Position / LOAF.GameScale;
@@ -176,7 +180,7 @@ public class CarpentryScene : Scene, IParticleEmitter
         //update the nail bounds at current nail position
         nailBounds.Position = new Vector2(
             (nailIndex + 1) * 16 * 6 - 14,
-            vh * 0.90f - 10 + nailHitCounter[nailIndex] * 1
+            vh * 0.85f - 10 + nailHitCounter[nailIndex] * 1
         );
 
         //delta time
@@ -338,7 +342,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                 {
                     lastNailHitTime = 0f;
                     hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
-                    nailHitCounter[nailIndex] += (int)angularVelocity - 3;
+                    nailHitCounter[nailIndex] += (int)Math.Abs(angularVelocity) - 3;
                     if (nailHitCounter[nailIndex] >= 45)
                     {
                         //move to next nail
@@ -346,7 +350,6 @@ public class CarpentryScene : Scene, IParticleEmitter
                         nailIndex = Math.Min(nailIndex, 2);
                         screenShakeflag = true;
                     }
-                    
                 }
             }
             //to the right of the nail and swinging CCW
@@ -356,7 +359,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                 {
                     lastNailHitTime = 0f;
                     hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
-                    nailHitCounter[nailIndex] += -(int)angularVelocity - 3;
+                    nailHitCounter[nailIndex] += (int)Math.Abs(angularVelocity) - 3;
                     if (nailHitCounter[nailIndex] >= 45)
                     {
                         //move to next nail
@@ -364,6 +367,26 @@ public class CarpentryScene : Scene, IParticleEmitter
                         nailIndex = Math.Min(nailIndex, 2);
                         screenShakeflag = true;
                     }
+                }
+            }
+            //to the left of the nail and swinging CCW
+            if (anchor.X < nailBounds.X && angularVelocity < 0)
+            {
+                if (headCircleLeft.CollidesWith(nailBounds))
+                {
+                    lastNailHitTime = 0f;
+                    hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
+                    nailHitCounter[nailIndex] -= (int)Math.Abs(angularVelocity) - 3;
+                }
+            }
+            //to the right of the nail and swinging CW
+            if (anchor.X > nailBounds.X + nailBounds.Width && angularVelocity > 0)
+            {
+                if (headCircleRight.CollidesWith(nailBounds))
+                {
+                    lastNailHitTime = 0f;
+                    hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
+                    nailHitCounter[nailIndex] -= (int)Math.Abs(angularVelocity) - 3;
                 }
             }
         }
@@ -499,6 +522,8 @@ public class CarpentryScene : Scene, IParticleEmitter
             _spriteBatch.DrawString(font, "All nails hammered! Well done!", new Vector2(50, 100), Color.Lime, 0f, Vector2.Zero, 1.5f, SpriteEffects.None, 0f);
         }
 
+        coin.Draw();
+
         if (debugFlag)
         {
             DrawCircleOutline(headCircleLeft.Center, headCircleLeft.Radius, Color.Red);
@@ -511,7 +536,6 @@ public class CarpentryScene : Scene, IParticleEmitter
 
             _spriteBatch.DrawString(font, "Speed: " + ((int)angularVelocity).ToString(), new Vector2(vw * 0.42f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
         }
-
         _spriteBatch.End();
     }
 

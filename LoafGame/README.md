@@ -45,3 +45,4 @@ Button.png
 hammer.png
 wood.png
 nail.png
+smile.png
