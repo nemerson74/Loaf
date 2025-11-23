@@ -104,7 +104,6 @@ public class CarpentryScene : Scene, IParticleEmitter
     private Texture2D pixel;
     private FireballParticleSystem fireballred;
     private FireballParticleSystem fireballs;
-    Coin coin;
 
     public CarpentryScene(Game game) : base(game) { }
 
@@ -132,7 +131,6 @@ public class CarpentryScene : Scene, IParticleEmitter
         MediaPlayer.Play(LOAF.backgroundMusicMinigame);
         MediaPlayer.IsRepeating = true;
 
-        coin = new Coin(LOAF);
         base.Initialize();
     }
 
@@ -162,7 +160,6 @@ public class CarpentryScene : Scene, IParticleEmitter
         if (LOAF == null) return;
         var input = LOAF.InputManager;
         debugFlag = input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Space);
-        coin.Update(gameTime);
 
         //follow the mouse
         anchor = input.Position / LOAF.GameScale;
@@ -521,8 +518,6 @@ public class CarpentryScene : Scene, IParticleEmitter
         {
             _spriteBatch.DrawString(font, "All nails hammered! Well done!", new Vector2(50, 100), Color.Lime, 0f, Vector2.Zero, 1.5f, SpriteEffects.None, 0f);
         }
-
-        coin.Draw();
 
         if (debugFlag)
         {
