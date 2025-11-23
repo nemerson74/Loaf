@@ -56,6 +56,17 @@ public abstract class Scene : IDisposable
     }
 
     /// <summary>
+    /// Initializes the scene.
+    /// </summary>
+    /// <remarks>
+    /// When overriding this in a derived class, ensure that base.Initialize()
+    /// still called as this is when LoadContent is called.
+    /// </remarks>
+    public virtual void Reinitialize()
+    {
+    }
+
+    /// <summary>
     /// Override to provide logic to load content for the scene.
     /// </summary>
     public virtual void LoadContent() { }

@@ -70,6 +70,13 @@ public class OverworldScene : Scene
         base.Initialize();
     }
 
+    public override void Reinitialize()
+    {
+        MediaPlayer.Stop();
+        MediaPlayer.Play(LOAF.backgroundMusicOverworld);
+        MediaPlayer.IsRepeating = true;
+    }
+
     public override void LoadContent()
     {
         var LOAF = Game as LOAF;

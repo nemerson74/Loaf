@@ -15,6 +15,9 @@ namespace LoafGame
     {
         private GraphicsDeviceManager _graphics;
 
+        // The overworld scene instance.
+        private static Scene s_overworldScene;
+
         // The scene that is currently active.
         private static Scene s_activeScene;
 
@@ -107,7 +110,20 @@ namespace LoafGame
             // to that scene.
             if (s_nextScene != null)
             {
-                TransitionScene();
+                if (s_activeScene is OverworldScene && s_nextScene is not TitleScene)
+                {
+                    TransitionFromOverworld();
+                }
+                else if (s_activeScene is OverworldScene && s_nextScene is TitleScene)
+                {
+                    TransitionScene();
+                }
+                else if (s_overworldScene is not null)
+                {
+                    TransitionBackToOverworld();
+                }
+                else
+                    TransitionScene();
             }
 
             // If there is an active scene, update it.
@@ -164,6 +180,55 @@ namespace LoafGame
             if (s_activeScene != null)
             {
                 s_activeScene.Initialize();
+            }
+        }
+
+        private static void TransitionFromOverworld()
+        {
+            // Make sure to keep a reference to the overworld scene
+            s_overworldScene = s_activeScene;
+
+            // Change the currently active scene to the new scene.
+            s_activeScene = s_nextScene;
+
+            // Null out the next scene value so it does not trigger a change over and over.
+            s_nextScene = null;
+
+            // If the active scene now is not null, initialize it.
+            // Remember, just like with Game, the Initialize call also calls the
+            // Scene.LoadContent
+            if (s_activeScene != null)
+            {
+                s_activeScene.Initialize();
+            }
+        }
+
+        private static void TransitionBackToOverworld()
+        {
+            // If there is an active scene, dispose of it.
+            if (s_activeScene != null)
+            {
+                s_activeScene.Dispose();
+            }
+            // If there is an next scene, dispose of it.
+            if (s_nextScene != null)
+            {
+                s_nextScene.Dispose();
+            }
+
+            // Force the garbage collector to collect to ensure memory is cleared.
+            GC.Collect();
+
+            // Change the currently active scene to the new scene.
+            s_activeScene = s_overworldScene;
+
+            // Null out the next scene value so it does not trigger a change over and over.
+            s_nextScene = null;
+
+            // If the active scene now is not null re-initialize it.
+            if (s_activeScene != null)
+            {
+                s_activeScene.Reinitialize();
             }
         }
 
