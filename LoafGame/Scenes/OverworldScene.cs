@@ -11,6 +11,7 @@ namespace LoafGame.Scenes;
 
 public class OverworldScene : Scene
 {
+    private ScoreTracker scoreTracker = new ScoreTracker();
     private SpriteBatch _spriteBatch;
     private RedWorker redWorker;
     private HexTilemap _tilemap;
@@ -22,6 +23,7 @@ public class OverworldScene : Scene
     private bool debugFlag = false;
     private bool tutorialFlag = true;
     private int prevHighlightedTile = -1;
+    private int currentHighlightedTile = -1;
     private int playerTile = -1;
 
     private float vw;
@@ -41,14 +43,6 @@ public class OverworldScene : Scene
     /// </summary>
     /// <param name="game">The game instance that this scene is associated with.</param>
     public OverworldScene(Game game) : base(game) { }
-
-    public OverworldScene(Game game, SaveData save) : base(game)
-    {
-        if (save != null)
-        {
-            startingPosition = new Vector2(save.X, save.Y);
-        }
-    }
 
     public override void Initialize()
     {
@@ -75,6 +69,27 @@ public class OverworldScene : Scene
         MediaPlayer.Stop();
         MediaPlayer.Play(LOAF.backgroundMusicOverworld);
         MediaPlayer.IsRepeating = true;
+
+        if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Forest)
+        {
+            if (scoreTracker.ForestPoints != 0) _tilemap.BuildTile(playerTile);
+            LOAF.BuildSound.Play();
+        }
+        else if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Desert)
+        {
+            if (scoreTracker.DesertPoints != 0) _tilemap.BuildTile(playerTile);
+            LOAF.BuildSound.Play();
+        }
+        else if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Badland)
+        {
+            if (scoreTracker.BadlandPoints != 0) _tilemap.BuildTile(playerTile);
+            LOAF.BuildSound.Play();
+        }
+        else if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Grassland)
+        {
+            if (scoreTracker.GrasslandPoints != 0) _tilemap.BuildTile(playerTile);
+            LOAF.BuildSound.Play();
+        }
     }
 
     public override void LoadContent()
@@ -100,16 +115,18 @@ public class OverworldScene : Scene
         //cursor = new BoundingPoint(LOAF.InputManager.Position / LOAF.GameScale);
         _tilemap.Update(LOAF.InputManager.Position / LOAF.GameScale, 0, (vh - mapHeight) / 2);
         playerTile = _tilemap.GetPlayerIndex();
+        currentHighlightedTile = _tilemap.GetHighlightedTile();
 
-        if (prevHighlightedTile != _tilemap.GetHighlightedTile())
+        if (prevHighlightedTile != currentHighlightedTile)
         {
+            prevHighlightedTile = currentHighlightedTile;
             //maybe play moving sound here
         }
 
         //save on F5 press
         if (LOAF.InputManager.KeyClicked(Keys.F5))
         {
-            SaveGame.SaveOverworld(redWorker.Position);
+            SaveGame.SaveOverworld(this);
             isSaved = true;
         }
 
@@ -129,9 +146,25 @@ public class OverworldScene : Scene
 
         if (LOAF.InputManager.RightMouseClicked)
         {
-            if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Forest)
+            if (_tilemap.HasBuilding(_tilemap.GetPlayerIndex()) is true)
             {
-                LOAF.ChangeScene(new CarpentryScene(LOAF));
+                LOAF.DeniedSound.Play();
+            }
+            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Forest)
+            {
+                LOAF.ChangeScene(new CarpentryScene(LOAF, scoreTracker));
+            }
+            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Desert)
+            {
+                //LOAF.ChangeScene(new CarpentryScene(LOAF, scoreTracker));
+            }
+            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Badland)
+            {
+                //LOAF.ChangeScene(new CarpentryScene(LOAF, scoreTracker));
+            }
+            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Grassland)
+            {
+                //LOAF.ChangeScene(new CarpentryScene(LOAF, scoreTracker));
             }
             else
             {
@@ -193,6 +226,9 @@ public class OverworldScene : Scene
             int[] indices = _tilemap.GetSurrounding(_tilemap.GetHighlightedTile());
             string indicesText = string.Join(", ", indices);
             _spriteBatch.DrawString(_font, "Surrounding Tiles Indices: " + indicesText, new Vector2(vw * 0.05f, vh - (vh - mapHeight) / 4), Color.Yellow * textFadeOpacity, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+            string scoresText = string.Join(", ", scoreTracker.GetScores());
+            _spriteBatch.DrawString(_font, "ScoresFGDB: " + scoresText, new Vector2(vw * 0.75f, vh - (vh - mapHeight) / 4), Color.Yellow * textFadeOpacity, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+
         }
 
         if (tutorialFlag)

@@ -11,16 +11,15 @@ namespace LoafGame
 {
     public class HexTile
     {
-
         /// <summary>
         /// Gets the type of terrain represented by this tile.
         /// </summary>
-        public Enums.TileType Terrain { get; init; }
+        public Enums.TileType Terrain { get; set; } = Enums.TileType.Grassland;
 
         /// <summary>
         /// The index of the tile in the tileset
         /// </summary>
-        public int TileIndex { get; init; }
+        public int TileIndex { get; set; } = 1;
 
         /// <summary>
         /// Gets the center point of the object as a two-dimensional vector.
@@ -47,6 +46,11 @@ namespace LoafGame
         /// Indicates whether the tile has a player on it.
         /// </summary>
         public bool HasPlayer { get; set; } = false;
+
+        /// <summary>
+        /// Indicates whether the tile has a player on it.
+        /// </summary>
+        public bool HasBuilding { get; set; } = false;
 
         /// <summary>
         /// Indicates whether the tile has a road on it.

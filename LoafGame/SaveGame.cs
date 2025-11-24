@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using LoafGame.Scenes;
 using Microsoft.Xna.Framework;
 
 namespace LoafGame
@@ -10,12 +11,12 @@ namespace LoafGame
         private static string SaveDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Loaf");
         private static string SavePath => Path.Combine(SaveDirectory, "overworld.json");
 
-        public static void SaveOverworld(Vector2 position)
+        public static void SaveOverworld(Scenes.OverworldScene scene)
         {
             try
             {
                 Directory.CreateDirectory(SaveDirectory);
-                var data = new SaveData { X = position.X, Y = position.Y };
+                var data = new SaveData { SavedScene = scene };
                 var json = JsonSerializer.Serialize(data);
                 File.WriteAllText(SavePath, json);
             }
@@ -54,7 +55,6 @@ namespace LoafGame
 
     public class SaveData
     {
-        public float X { get; set; }
-        public float Y { get; set; }
+        public OverworldScene SavedScene { get; set; }
     }
 }

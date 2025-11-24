@@ -50,6 +50,12 @@
 /processorParam:Quality=Best
 /build:05 A joyfull get together in the royal chambers_[cut_41sec].wav
 
+#begin 070_Equip_10.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:070_Equip_10.wav
+
 #begin 35_Miss_Evade_02.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor

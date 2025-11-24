@@ -110,15 +110,13 @@ public class TitleScene : Scene
             }
             if (loadButton.Hover)
             {
-                loadButton.PlayClickSound();
-                // Try to load saved position and start overworld
-                if (SaveGame.TryLoadOverworld(out var save))
+                if (LOAF.TryLoadScene())
                 {
-                    LOAF.ChangeScene(new OverworldScene(LOAF, save));
+                    loadButton.PlayClickSound();
                 }
                 else
                 {
-                    LOAF.ChangeScene(new OverworldScene(LOAF));
+                    LOAF.DeniedSound.Play();
                 }
             }
             if (creditsButton.Hover)

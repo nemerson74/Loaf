@@ -23,6 +23,8 @@ public class CarpentryScene : Scene, IParticleEmitter
     /// </summary>
     public Vector2 Velocity { get; set; }
 
+    private int _score = 0;
+    private ScoreTracker _scoreTracker;
     private bool debugFlag = false;
     Random random = new Random();
     Vector2 shakeOffset = Vector2.Zero;
@@ -105,7 +107,10 @@ public class CarpentryScene : Scene, IParticleEmitter
     private FireballParticleSystem fireballred;
     private FireballParticleSystem fireballs;
 
-    public CarpentryScene(Game game) : base(game) { }
+    public CarpentryScene(Game game, ScoreTracker scoreTracker = null) : base(game) 
+    {
+        _scoreTracker = scoreTracker;
+    }
 
     public override void Initialize()
     {
@@ -426,6 +431,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                 fireballs.Dispose();
                 fireballs = null;
             }
+            if (_scoreTracker != null) _scoreTracker.ForestPoints = _score;
             LOAF.ChangeScene(new TitleScene(LOAF));
             return;
         }
@@ -512,11 +518,12 @@ public class CarpentryScene : Scene, IParticleEmitter
         SpriteFont font = Content.Load<SpriteFont>("vergilia");
         float fontScale = 1f;
         _spriteBatch.DrawString(font, "Mouse Buttons to Rotate, Spacebar: DEBUG", new Vector2(vw * 0.7f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
-        _spriteBatch.DrawString(font, "ESC to return to title", new Vector2(vw * 0.02f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "ESC to return", new Vector2(vw * 0.02f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
         if (nailHitCounter[2] >= 45)
         {
             _spriteBatch.DrawString(font, "All nails hammered! Well done!", new Vector2(50, 100), Color.Lime, 0f, Vector2.Zero, 1.5f, SpriteEffects.None, 0f);
+            _score = 3;
         }
 
         if (debugFlag)

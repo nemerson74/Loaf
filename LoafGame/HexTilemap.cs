@@ -296,8 +296,37 @@ namespace LoafGame
                     hexTiles[index].IsWalkable = true;
                 }
             }
-
             return true;
+        }
+
+        public void BuildTile(int index)
+        {
+            if (index == -1) return;
+            if (hexTiles[index].HasBuilding) return;
+            Enums.TileType terrain = GetTileTerrain(index);
+            if (terrain == Enums.TileType.Forest)
+            {
+                TileIndices[index] = 13;
+            }
+            else if (terrain == Enums.TileType.Desert)
+            {
+                TileIndices[index] = 16;
+            }
+            else if (terrain == Enums.TileType.Badland)
+            {
+                TileIndices[index] = 15;
+            }
+            else if (terrain == Enums.TileType.Grassland)
+            {
+                TileIndices[index] = 14;
+            }
+            hexTiles[index].HasBuilding = true;
+        }
+
+        public bool HasBuilding(int index)
+        {
+            if (index == -1) return false;
+            return hexTiles[index].HasBuilding;
         }
 
         public Enums.TileType GetTileTerrain(int index)

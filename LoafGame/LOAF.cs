@@ -55,6 +55,11 @@ namespace LoafGame
         public static SoundEffect FleeSound { get; private set; }
 
         /// <summary>
+        /// Gets the sound effect that plays when the character builds on a tile.
+        /// </summary>
+        public static SoundEffect BuildSound { get; private set; }
+
+        /// <summary>
         /// Background music for title screen.
         /// </summary>
         public static Song backgroundMusicTitle { get; private set; }
@@ -96,6 +101,8 @@ namespace LoafGame
             ButtonClickSound = Content.Load<SoundEffect>("013_Confirm_03");
             DeniedSound = Content.Load<SoundEffect>("033_Denied_03");
             FleeSound = Content.Load<SoundEffect>("51_Flee_02");
+            BuildSound = Content.Load<SoundEffect>("070_Equip_10");
+
             backgroundMusicTitle = Content.Load<Song>("05 A joyfull get together in the royal chambers_[cut_41sec]");
             backgroundMusicOverworld = Content.Load<Song>("04 Heroes theme - Ouverture of Valor_[cut_84sec]");
             backgroundMusicMinigame = Content.Load<Song>("02 The Dark Lord - upbeat version_[cut_60sec]");
@@ -116,6 +123,8 @@ namespace LoafGame
                 }
                 else if (s_activeScene is OverworldScene && s_nextScene is TitleScene)
                 {
+                    s_overworldScene.Dispose();
+                    s_overworldScene = null;
                     TransitionScene();
                 }
                 else if (s_overworldScene is not null)
@@ -157,6 +166,11 @@ namespace LoafGame
             }
         }
 
+        public static bool TryLoadScene()
+        {
+            return LoadSave();
+        }
+
         private static void TransitionScene()
         {
             // If there is an active scene, dispose of it.
@@ -170,6 +184,10 @@ namespace LoafGame
 
             // Change the currently active scene to the new scene.
             s_activeScene = s_nextScene;
+            if (s_activeScene is OverworldScene)
+            {
+                s_overworldScene = s_activeScene;
+            }
 
             // Null out the next scene value so it does not trigger a change over and over.
             s_nextScene = null;
@@ -230,6 +248,45 @@ namespace LoafGame
             {
                 s_activeScene.Reinitialize();
             }
+        }
+
+        private static bool LoadSave()
+        {
+            // If there is an active scene, dispose of it.
+            if (SaveGame.TryLoadOverworld(out var save))
+            {
+                if (s_activeScene != null)
+                {
+                    s_activeScene.Dispose();
+                }
+                if (s_overworldScene != null)
+                {
+                    s_overworldScene.Dispose();
+                }
+                s_overworldScene = save.SavedScene;
+            }
+            else { return false; }
+            // If there is an next scene, dispose of it.
+            if (s_nextScene != null)
+            {
+                s_nextScene.Dispose();
+            }
+
+            // Force the garbage collector to collect to ensure memory is cleared.
+            GC.Collect();
+
+            // Change the currently active scene to the new scene.
+            s_activeScene = s_overworldScene;
+
+            // Null out the next scene value so it does not trigger a change over and over.
+            s_nextScene = null;
+
+            // If the active scene now is not null re-initialize it.
+            if (s_activeScene != null)
+            {
+                s_activeScene.Reinitialize();
+            }
+            return true;
         }
 
         public void ChangeResolutionScale(float scale)
