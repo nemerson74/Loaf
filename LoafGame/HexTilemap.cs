@@ -307,18 +307,22 @@ namespace LoafGame
             if (terrain == Enums.TileType.Forest)
             {
                 TileIndices[index] = 13;
+                hexTiles[index].TileIndex = 13;
             }
             else if (terrain == Enums.TileType.Desert)
             {
                 TileIndices[index] = 16;
+                hexTiles[index].TileIndex = 16;
             }
             else if (terrain == Enums.TileType.Badland)
             {
                 TileIndices[index] = 15;
+                hexTiles[index].TileIndex = 15;
             }
             else if (terrain == Enums.TileType.Grassland)
             {
                 TileIndices[index] = 14;
+                hexTiles[index].TileIndex = 14;
             }
             hexTiles[index].HasBuilding = true;
         }
@@ -370,6 +374,70 @@ namespace LoafGame
         public int GetHighlightedTile()
         {
             return highlightedTile;
+        }
+
+        public SaveData GiveHexState()
+        {
+            SaveData saveData = new SaveData();
+            saveData.s_Terrain = new Enums.TileType[hexTiles.Length];
+            saveData.s_TileIndex = new int[hexTiles.Length];
+            saveData.s_Center = new Vector2[hexTiles.Length];
+            saveData.s_SurroundingTilesIndices = new int[hexTiles.Length][];
+            saveData.s_IsHighlighted = new bool[hexTiles.Length];
+            saveData.s_IsWalkable = new bool[hexTiles.Length];
+            saveData.s_HasPlayer = new bool[hexTiles.Length];
+            saveData.s_HasBuilding = new bool[hexTiles.Length];
+            saveData.s_HasRoad = new bool[hexTiles.Length];
+            for (int i = 0; i < hexTiles.Length; i++)
+            {
+                saveData.s_Terrain[i] = hexTiles[i].Terrain;
+                saveData.s_TileIndex[i] = hexTiles[i].TileIndex;
+                saveData.s_Center[i] = hexTiles[i].Center;
+                saveData.s_SurroundingTilesIndices[i] = new int[]
+                {
+                    hexTiles[i].SurroundingTilesIndices[0],
+                    hexTiles[i].SurroundingTilesIndices[1],
+                    hexTiles[i].SurroundingTilesIndices[2],
+                    hexTiles[i].SurroundingTilesIndices[3],
+                    hexTiles[i].SurroundingTilesIndices[4],
+                    hexTiles[i].SurroundingTilesIndices[5]
+                };
+                saveData.s_IsHighlighted[i] = (i == highlightedTile);
+                saveData.s_IsWalkable[i] = hexTiles[i].IsWalkable;
+                saveData.s_HasPlayer[i] = hexTiles[i].HasPlayer;
+                saveData.s_HasBuilding[i] = hexTiles[i].HasBuilding;
+                saveData.s_HasRoad[i] = hexTiles[i].HasRoad;
+
+            }
+            return saveData;
+        }
+
+        public void TakeHexState(SaveData data)
+        {
+            for (int i = 0; i < hexTiles.Length; i++)
+            {
+                hexTiles[i].Terrain = data.s_Terrain[i];
+                hexTiles[i].TileIndex = data.s_TileIndex[i];
+                TileIndices[i] = data.s_TileIndex[i];
+                hexTiles[i].Center = data.s_Center[i];
+                hexTiles[i].SurroundingTilesIndices = new int[]
+                {
+                    data.s_SurroundingTilesIndices[i][0],
+                    data.s_SurroundingTilesIndices[i][1],
+                    data.s_SurroundingTilesIndices[i][2],
+                    data.s_SurroundingTilesIndices[i][3],
+                    data.s_SurroundingTilesIndices[i][4],
+                    data.s_SurroundingTilesIndices[i][5]
+                };
+                hexTiles[i].IsWalkable = data.s_IsWalkable[i];
+                hexTiles[i].HasPlayer = data.s_HasPlayer[i];
+                hexTiles[i].HasBuilding = data.s_HasBuilding[i];
+                hexTiles[i].HasRoad = data.s_HasRoad[i];
+                if (data.s_IsHighlighted[i])
+                {
+                    highlightedTile = i;
+                }
+            }
         }
     }
 

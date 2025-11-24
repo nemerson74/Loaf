@@ -18,6 +18,8 @@ public class OverworldScene : Scene
     private BoundingPoint cursor;
     private SpriteFont _font;
     private bool isSaved = false;
+    private bool loadingFromSave = false;
+    private SaveData loadedSave;
     private float textFadeTimer = 0f;
     private float textFadeOpacity = 1f;
     private bool debugFlag = false;
@@ -43,6 +45,12 @@ public class OverworldScene : Scene
     /// </summary>
     /// <param name="game">The game instance that this scene is associated with.</param>
     public OverworldScene(Game game) : base(game) { }
+
+    public OverworldScene(Game game, SaveData save) : base(game) 
+    {
+        loadingFromSave = true;
+        loadedSave = save;
+    }
 
     public override void Initialize()
     {
@@ -105,6 +113,11 @@ public class OverworldScene : Scene
         redWorker.LoadContent(Content);
         redWorker.Position = _tilemap.GetCenter(0) + new Vector2(-16, -16);
         _font = Content.Load<SpriteFont>("vergilia");
+        if (loadingFromSave)
+        {
+            _tilemap.TakeHexState(loadedSave);
+            redWorker.Position = _tilemap.GetCenter(_tilemap.GetPlayerIndex()) + new Vector2(-16, -16);
+        }
     }
 
     public override void Update(GameTime gameTime)
@@ -126,7 +139,7 @@ public class OverworldScene : Scene
         //save on F5 press
         if (LOAF.InputManager.KeyClicked(Keys.F5))
         {
-            SaveGame.SaveOverworld(this);
+            SaveGame.SaveOverworld(_tilemap.GiveHexState());
             isSaved = true;
         }
 

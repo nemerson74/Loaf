@@ -30,7 +30,7 @@ namespace LoafGame
         /// Gets the indices of the tiles surrounding the current tile.
         /// Starts at the top-left and goes clockwise.
         /// </summary>
-        public int[] SurroundingTilesIndices { get; init; }
+        public int[] SurroundingTilesIndices { get; set; }
 
         /// <summary>
         /// Indicates whether the tile is currently highlighted.

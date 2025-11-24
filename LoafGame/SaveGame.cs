@@ -11,13 +11,13 @@ namespace LoafGame
         private static string SaveDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Loaf");
         private static string SavePath => Path.Combine(SaveDirectory, "overworld.json");
 
-        public static void SaveOverworld(Scenes.OverworldScene scene)
+        public static void SaveOverworld(SaveData data)
         {
             try
             {
                 Directory.CreateDirectory(SaveDirectory);
-                var data = new SaveData { SavedScene = scene };
-                var json = JsonSerializer.Serialize(data);
+                var options = new JsonSerializerOptions { IncludeFields = true, WriteIndented = true };
+                var json = JsonSerializer.Serialize(data, options);
                 File.WriteAllText(SavePath, json);
             }
             catch
@@ -36,7 +36,8 @@ namespace LoafGame
                     return false;
                 }
                 var json = File.ReadAllText(SavePath);
-                var read = JsonSerializer.Deserialize<SaveData>(json);
+                var options = new JsonSerializerOptions { IncludeFields = true };
+                var read = JsonSerializer.Deserialize<SaveData>(json, options);
                 if (read == null)
                 {
                     data = new SaveData();
@@ -55,6 +56,14 @@ namespace LoafGame
 
     public class SaveData
     {
-        public OverworldScene SavedScene { get; set; }
+        public Enums.TileType[] s_Terrain;
+        public int[] s_TileIndex;
+        public Vector2[] s_Center;
+        public int[][] s_SurroundingTilesIndices;
+        public bool[] s_IsHighlighted;
+        public bool[] s_IsWalkable;
+        public bool[] s_HasPlayer;
+        public bool[] s_HasBuilding;
+        public bool[] s_HasRoad;
     }
 }

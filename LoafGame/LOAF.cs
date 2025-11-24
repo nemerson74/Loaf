@@ -166,11 +166,6 @@ namespace LoafGame
             }
         }
 
-        public static bool TryLoadScene()
-        {
-            return LoadSave();
-        }
-
         private static void TransitionScene()
         {
             // If there is an active scene, dispose of it.
@@ -248,45 +243,6 @@ namespace LoafGame
             {
                 s_activeScene.Reinitialize();
             }
-        }
-
-        private static bool LoadSave()
-        {
-            // If there is an active scene, dispose of it.
-            if (SaveGame.TryLoadOverworld(out var save))
-            {
-                if (s_activeScene != null)
-                {
-                    s_activeScene.Dispose();
-                }
-                if (s_overworldScene != null)
-                {
-                    s_overworldScene.Dispose();
-                }
-                s_overworldScene = save.SavedScene;
-            }
-            else { return false; }
-            // If there is an next scene, dispose of it.
-            if (s_nextScene != null)
-            {
-                s_nextScene.Dispose();
-            }
-
-            // Force the garbage collector to collect to ensure memory is cleared.
-            GC.Collect();
-
-            // Change the currently active scene to the new scene.
-            s_activeScene = s_overworldScene;
-
-            // Null out the next scene value so it does not trigger a change over and over.
-            s_nextScene = null;
-
-            // If the active scene now is not null re-initialize it.
-            if (s_activeScene != null)
-            {
-                s_activeScene.Reinitialize();
-            }
-            return true;
         }
 
         public void ChangeResolutionScale(float scale)

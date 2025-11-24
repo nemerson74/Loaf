@@ -110,9 +110,10 @@ public class TitleScene : Scene
             }
             if (loadButton.Hover)
             {
-                if (LOAF.TryLoadScene())
+                if (SaveGame.TryLoadOverworld(out var save))
                 {
                     loadButton.PlayClickSound();
+                    LOAF.ChangeScene(new OverworldScene(LOAF, save));
                 }
                 else
                 {
