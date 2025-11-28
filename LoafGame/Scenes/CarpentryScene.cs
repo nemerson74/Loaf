@@ -528,9 +528,10 @@ public class CarpentryScene : Scene, IParticleEmitter
 
         if (debugFlag)
         {
-            DrawCircleOutline(headCircleLeft.Center, headCircleLeft.Radius, Color.Red);
-            DrawCircleOutline(headCircleRight.Center, headCircleRight.Radius, Color.Red);
-            DrawRectangleOutline(nailBounds, Color.Cyan);
+            Debug.DrawCircleOutline(_spriteBatch, Game.GraphicsDevice, headCircleLeft.Center, headCircleLeft.Radius, Color.Red);
+            Debug.DrawCircleOutline(_spriteBatch, Game.GraphicsDevice, headCircleRight.Center, headCircleLeft.Radius, Color.Red);
+            Debug.DrawRectangleOutline(_spriteBatch, Game.GraphicsDevice, nailBounds, Color.Cyan);
+            Debug.DrawPoint(_spriteBatch, Game.GraphicsDevice, anchor, Color.Orange);
 
             _spriteBatch.DrawString(font, "CW: " + revolutionsCW.ToString(), new Vector2(vw * 0.22f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
@@ -553,30 +554,5 @@ public class CarpentryScene : Scene, IParticleEmitter
         float c = MathF.Cos(angle);
         float s = MathF.Sin(angle);
         return new Vector2(v.X * c - v.Y * s, v.X * s + v.Y * c);
-    }
-
-    //draw a circle outline by plotting points
-    //move these to a class later
-    private void DrawCircleOutline(Vector2 center, float radius, Color color)
-    {
-        // draw 36 points
-        int steps = 36;
-        for (int i = 0; i < steps; i++)
-        {
-            float a = i * (MathF.PI * 2f / steps);
-            Vector2 p = center + new Vector2(MathF.Cos(a), MathF.Sin(a)) * radius;
-            _spriteBatch.Draw(pixel, p, null, color, 0f, new Vector2(0.5f, 0.5f), 3f, SpriteEffects.None, 0f);
-        }
-    }
-
-    // draw a rectangle outline by plotting points
-    private void DrawRectangleOutline(BoundingRectangle rect, Color color)
-    {
-        // thickness
-        int t = 2;
-        _spriteBatch.Draw(pixel, new Rectangle((int)rect.X, (int)rect.Y, (int)rect.Width, t), color);
-        _spriteBatch.Draw(pixel, new Rectangle((int)rect.X, (int)(rect.Y + rect.Height - t), (int)rect.Width, t), color);
-        _spriteBatch.Draw(pixel, new Rectangle((int)rect.X, (int)rect.Y, t, (int)rect.Height), color);
-        _spriteBatch.Draw(pixel, new Rectangle((int)(rect.X + rect.Width - t), (int)rect.Y, t, (int)rect.Height), color);
     }
 }
