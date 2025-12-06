@@ -88,12 +88,12 @@ namespace LoafGame
         /// <summary>
         /// The center of the left bounding circle.
         /// </summary>
-        public Vector2 LeftCollisionOrigin { get; set; } = new Vector2(5f, 3f);
+        public Vector2 LeftCollisionOrigin { get; set; } = new Vector2(1f, 4f);
 
         /// <summary>
         /// the center of the right bounding circle.
         /// </summary>
-        public Vector2 RightCollisionOrigin { get; set; } = new Vector2(11f, 3f);
+        public Vector2 RightCollisionOrigin { get; set; } = new Vector2(15f, 4f);
 
         /// <summary>
         /// Base radius of the collision circles.
@@ -104,6 +104,11 @@ namespace LoafGame
         /// Scale of the tool.
         /// </summary>
         public float Scale { get; set; } = 5f;
+
+        /// <summary>
+        /// Scale of the tool.
+        /// </summary>
+        public float GameScale { get; set; } = 1f;
 
         /// <summary>
         /// The magnitude of the effect of mouse input on rotation.
@@ -155,8 +160,8 @@ namespace LoafGame
         private static SoundEffect toolHit;
         private Texture2D toolTexture;
         private int toolFrame = 0;
-        private BoundingCircle leftBoundingCircle;
-        private BoundingCircle rightBoundingCircle;
+        public BoundingCircle leftBoundingCircle;
+        public BoundingCircle rightBoundingCircle;
         #endregion
 
         public Rotator() {}
@@ -178,17 +183,20 @@ namespace LoafGame
 
         public void Update(GameTime gameTime, InputManager input)
         {
-            //follow the mouse
+            //follow the mouse (in world units; input.Position is in screen units)
             anchor = input.Position / gameScale;
 
-            //update head circle centers to follow the rotated/scaled hammer sprite
+            // update head circle centers to follow the rotated/scaled sprite
             float drawRotation = angle - MathF.PI;
+            // compute local offsets from the cursor origin, rotated, then scaled by sprite Scale
             Vector2 leftLocal = Rotate(LeftCollisionOrigin - CursorOrigin, drawRotation) * Scale;
             Vector2 rightLocal = Rotate(RightCollisionOrigin - CursorOrigin, drawRotation) * Scale;
-            leftBoundingCircle.Center = anchor * leftLocal;
-            rightBoundingCircle.Center = anchor * rightLocal;
-            leftBoundingCircle.Radius = CollisionRadius * Scale;
-            rightBoundingCircle.Radius = CollisionRadius * Scale;
+            // place circles at sprite position plus local offsets
+            leftBoundingCircle.Center = anchor + leftLocal;
+            rightBoundingCircle.Center = anchor + rightLocal;
+            // set radii
+            leftBoundingCircle.Radius = CollisionRadius;
+            rightBoundingCircle.Radius = CollisionRadius;
 
             //delta time
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -355,6 +363,16 @@ namespace LoafGame
                 SpriteEffects.None,
                 0f
             );
+        }
+
+        public void PlayHitSound()
+        {
+            toolHit.Play(1f, 0f, 0f);
+        }
+
+        public void Rebound()
+        {
+            AngularVelocity = -AngularVelocity * 0.2f;
         }
 
         private static float WrapAngle(float radians)

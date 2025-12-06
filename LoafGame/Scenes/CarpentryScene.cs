@@ -114,7 +114,6 @@ public class CarpentryScene : Scene, IParticleEmitter
 
     public override void Initialize()
     {
-        base.Initialize();
         prevAnchor = Vector2.Zero;
         prevAngle = angle;
 
@@ -443,7 +442,7 @@ public class CarpentryScene : Scene, IParticleEmitter
 
     public override void Draw(GameTime gameTime)
     {
-        Game.GraphicsDevice.Clear(Color.DarkSlateGray);
+        Game.GraphicsDevice.Clear(Color.DarkGreen);
         var LOAF = Game as LOAF;
         // combine scale and screen-shake translation into the view matrix
         Matrix viewMatrix = Matrix.CreateScale(LOAF.GameScale) * Matrix.CreateTranslation(shakeOffset.X, shakeOffset.Y, 0f);

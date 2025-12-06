@@ -13,7 +13,7 @@ public class MinigameSelectorScene : Scene
     private SpriteBatch _spriteBatch;
     private Button newGameButton;
     private Button carpentryButton;
-    private Button masonryButton;
+    private Button miningButton;
     private BoundingPoint cursor;
 
     private float vw;
@@ -36,7 +36,7 @@ public class MinigameSelectorScene : Scene
 
         newGameButton = new Button() { Position = new Vector2(centerX, buttonRowY - buttonSpacing), Text = "New" };
         carpentryButton = new Button() { Position = new Vector2(centerX - buttonSpacing, buttonRowY + buttonSpacing), Text = "Carpentry" };
-        masonryButton = new Button() { Position = new Vector2(centerX + buttonSpacing, buttonRowY + buttonSpacing), Text = "wip" };
+        miningButton = new Button() { Position = new Vector2(centerX + buttonSpacing, buttonRowY + buttonSpacing), Text = "Mining" };
         base.Initialize();
     }
 
@@ -45,7 +45,7 @@ public class MinigameSelectorScene : Scene
         _spriteBatch = new SpriteBatch(Game.GraphicsDevice);
         newGameButton.LoadContent(Content);
         carpentryButton.LoadContent(Content);
-        masonryButton.LoadContent(Content);
+        miningButton.LoadContent(Content);
     }
 
     public override void Update(GameTime gameTime)
@@ -57,7 +57,7 @@ public class MinigameSelectorScene : Scene
         cursor = new BoundingPoint(input.Position / LOAF.GameScale);
         newGameButton.Update(cursor.CollidesWith(newGameButton.Bounds));
         carpentryButton.Update(cursor.CollidesWith(carpentryButton.Bounds));
-        masonryButton.Update(cursor.CollidesWith(masonryButton.Bounds));
+        miningButton.Update(cursor.CollidesWith(miningButton.Bounds));
 
         // Right click to return
         if (input.PreviousRightMouseState == ButtonState.Released && input.CurrentRightMouseState == ButtonState.Pressed)
@@ -85,10 +85,10 @@ public class MinigameSelectorScene : Scene
                 carpentryButton.PlayClickSound();
                 LOAF.ChangeScene(new CarpentryScene(LOAF));
             }
-            if (masonryButton.Hover)
+            if (miningButton.Hover)
             {
-                masonryButton.PlayClickSound();
-                //LOAF.ChangeScene(new LoadScene(LOAF));
+                miningButton.PlayClickSound();
+                LOAF.ChangeScene(new MiningScene(LOAF));
             }
         }
     }
@@ -101,7 +101,7 @@ public class MinigameSelectorScene : Scene
         _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(LOAF.GameScale));
         newGameButton.Draw(_spriteBatch);
         carpentryButton.Draw(_spriteBatch);
-        masonryButton.Draw(_spriteBatch);
+        miningButton.Draw(_spriteBatch);
         SpriteFont font = Content.Load<SpriteFont>("vergilia");
         float fontScale = 1f;
 
