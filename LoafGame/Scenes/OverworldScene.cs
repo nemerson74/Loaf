@@ -85,17 +85,20 @@ public class OverworldScene : Scene
         }
         else if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Desert)
         {
-            if (scoreTracker.DesertPoints != 0) _tilemap.BuildTile(playerTile);
+            //if (scoreTracker.DesertPoints != 0) _tilemap.BuildTile(playerTile);
+            _tilemap.BuildTile(playerTile);
             LOAF.BuildSound.Play();
         }
         else if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Badland)
         {
-            if (scoreTracker.BadlandPoints != 0) _tilemap.BuildTile(playerTile);
+            //if (scoreTracker.BadlandPoints != 0) _tilemap.BuildTile(playerTile);
+            _tilemap.BuildTile(playerTile);
             LOAF.BuildSound.Play();
         }
         else if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Grassland)
         {
-            if (scoreTracker.GrasslandPoints != 0) _tilemap.BuildTile(playerTile);
+            //if (scoreTracker.GrasslandPoints != 0) _tilemap.BuildTile(playerTile);
+            _tilemap.BuildTile(playerTile);
             LOAF.BuildSound.Play();
         }
     }
@@ -169,15 +172,17 @@ public class OverworldScene : Scene
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Desert)
             {
-                //LOAF.ChangeScene(new CarpentryScene(LOAF, scoreTracker));
+                //LOAF.ChangeScene(new CactusScene(LOAF, scoreTracker));
+                Reinitialize();
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Badland)
             {
-                //LOAF.ChangeScene(new CarpentryScene(LOAF, scoreTracker));
+                LOAF.ChangeScene(new MiningScene(LOAF, scoreTracker));
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Grassland)
             {
-                //LOAF.ChangeScene(new CarpentryScene(LOAF, scoreTracker));
+                //LOAF.ChangeScene(new WheatScene(LOAF, scoreTracker));
+                Reinitialize();
             }
             else
             {

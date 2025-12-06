@@ -180,10 +180,14 @@ public class CarpentryScene : Scene, IParticleEmitter
         headCircleRight.Radius = HEAD_CIRCLE_RADIUS * drawScale;
 
         //update the nail bounds at current nail position
-        nailBounds.Position = new Vector2(
-            (nailIndex + 1) * 16 * 6 - 14,
-            vh * 0.85f - 10 + nailHitCounter[nailIndex] * 1
-        );
+        if (nailHitCounter[2] < 45)
+        {
+            nailBounds.Position = new Vector2
+            (
+                (nailIndex + 1) * 16 * 6 - 14,
+                vh * 0.85f - 10 + nailHitCounter[nailIndex] * 1
+            );
+        }
 
         //delta time
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -524,6 +528,7 @@ public class CarpentryScene : Scene, IParticleEmitter
         {
             _spriteBatch.DrawString(font, "All nails hammered! Well done!", new Vector2(50, 100), Color.Lime, 0f, Vector2.Zero, 1.5f, SpriteEffects.None, 0f);
             _score = 3;
+            nailBounds.Position = new Vector2(-1000, -1000);
         }
 
         if (debugFlag)

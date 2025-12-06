@@ -121,6 +121,11 @@ namespace LoafGame
         public float revolutionsCCW { get; set; } = 0f;
 
         /// <summary>
+        /// Cirrent Angular Velocity of the rotator.
+        /// </summary>
+        public float AngularVelocity { get; private set; } = 0f;
+
+        /// <summary>
         /// The name of the texture to load.
         /// </summary>
         public string TextureName { get; set; } = "hammer";
@@ -140,7 +145,6 @@ namespace LoafGame
         private float prevAngle = 0f;
         private float currentVelocity;
         private float currentMaxVelocity;
-        private float angularVelocity;
         private float angularAcceleration;
         private float accumulatedCW = 0f;
         private float accumulatedCCW = 0f;
@@ -212,9 +216,9 @@ namespace LoafGame
             angularAcceleration = (clickTorque + gravityTorque) / inertia;
 
             // integrate angular motion
-            angularVelocity += angularAcceleration * dt;
-            angularVelocity = MathHelper.Clamp(angularVelocity, -currentMaxVelocity, currentMaxVelocity);
-            angle += angularVelocity * dt;
+            AngularVelocity += angularAcceleration * dt;
+            AngularVelocity = MathHelper.Clamp(AngularVelocity, -currentMaxVelocity, currentMaxVelocity);
+            angle += AngularVelocity * dt;
 
             // revolution tracking
             float delta = WrapAngle(angle - prevAngle);
@@ -228,8 +232,8 @@ namespace LoafGame
                     accumulatedCCW -= MathF.PI * 2f;
                     revolutionsCCW = Math.Min(revolutionsCCW, 12);
                     revolutionsCW = 0;
-                    if (Math.Abs(angularVelocity) > currentMaxVelocity * 0.7f)
-                        toolWhoosh.Play(1f, Math.Max(1f - Math.Abs(angularVelocity), 0.5f), 0f);
+                    if (Math.Abs(AngularVelocity) > currentMaxVelocity * 0.7f)
+                        toolWhoosh.Play(1f, Math.Max(1f - Math.Abs(AngularVelocity), 0.5f), 0f);
                 }
             }
             else if (delta < 0f)
@@ -242,8 +246,8 @@ namespace LoafGame
                     accumulatedCW -= MathF.PI * 2f;
                     revolutionsCW = Math.Min(revolutionsCW, 12);
                     revolutionsCCW = 0;
-                    if (Math.Abs(angularVelocity) > currentMaxVelocity * 0.7f)
-                        toolWhoosh.Play(1f, Math.Max(1f - Math.Abs(angularVelocity) / 12, 0.5f), 0f);
+                    if (Math.Abs(AngularVelocity) > currentMaxVelocity * 0.7f)
+                        toolWhoosh.Play(1f, Math.Max(1f - Math.Abs(AngularVelocity) / 12, 0.5f), 0f);
                 }
             }
             prevAngle = angle;
@@ -292,12 +296,12 @@ namespace LoafGame
             // damping
             if (!(input.LeftMouseDown || input.RightMouseDown))
             {
-                angularVelocity *= Damping;
+                AngularVelocity *= Damping;
             }
 
             //decay the rotations
             glowDelay += dt;
-            if (MathF.Abs(angularVelocity) < 6f && glowDelay > 0.5f)
+            if (MathF.Abs(AngularVelocity) < 6f && glowDelay > 0.5f)
             {
                 glowDelay = 0f;
                 revolutionsCW = Math.Max(0, revolutionsCW - 1);
@@ -305,7 +309,7 @@ namespace LoafGame
             }
 
             //speed drops below MinDecayVelocity, reset to stage 1
-            if (Math.Abs(angularVelocity) < MinDecayVelocity)
+            if (Math.Abs(AngularVelocity) < MinDecayVelocity)
             {
                 currentMaxVelocity = MaxVelocities[0];
                 revolutionsCCW = 0;
