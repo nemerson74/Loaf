@@ -39,10 +39,14 @@ Used with permission.
 * "02 The Dark Lord - upbeat version" by Boris Sandor
 * "04 Heroes theme - Ouverture of Valor" by Boris Sandor
 Used with permission. Available at https://boris-sandor.itch.io/
+* Credits Screen song used with permission for this project only from s o i.
 
 * Assets by Nathan Emerson for use in this project:
 Button.png
 hammer.png
 wood.png
 nail.png
-smile.png
+ore.png
+rock.png
+pickaxe.png
+

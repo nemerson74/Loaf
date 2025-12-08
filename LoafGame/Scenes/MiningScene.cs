@@ -180,6 +180,7 @@ public class MiningScene : Scene, IParticleEmitter
         {
             oreCollisions[i] = new BoundingCircle(orePositions[i] + oreCenterOffset, oreRadius*.8f);
         }
+
     }
 
     public override void Update(GameTime gameTime)
@@ -197,37 +198,58 @@ public class MiningScene : Scene, IParticleEmitter
 
         //Detect collisions with rocks
         lastHitTime += dt;
-        if (oreMined < 3 && lastHitTime > 0.7f && Math.Abs(pickaxe.AngularVelocity) > 3f)
+        if (oreMined < 3 && lastHitTime > 0.7f)
         {
             for (int i = 0; i < ROCK_COUNT; i++)
             {
                 if (pickaxe.leftBoundingCircle.CollidesWith(rockCollisions[i]) || pickaxe.rightBoundingCircle.CollidesWith(rockCollisions[i]))
                 {
-                    screenShakeflag = true;
-                    pickaxe.PlayHitSound();
-                    pickaxe.Rebound();
-                    //remove rock from scene by moving offscreen
-                    rockCollisions[i].Center = new Vector2(-1000f, -1000f);
-                    rockPositions[i] = new Vector2(-1000f, -1000f);
-                    lastHitTime = 0f;
+                    if( Math.Abs(pickaxe.AngularVelocity) > 5f)
+                    {
+                        screenShakeflag = true;
+                        pickaxe.PlayHitSound();
+                        pickaxe.Rebound();
+                        //remove rock from scene by moving offscreen
+                        rockCollisions[i].Center = new Vector2(-1000f, -1000f);
+                        rockPositions[i] = new Vector2(-1000f, -1000f);
+                        lastHitTime = 0f;
+
+                    }
+                    else
+                    {
+                        pickaxe.PlayHitSound();
+                        pickaxe.Rebound();
+                        lastHitTime = 0f;
+                    }
                 }
             }
         }
         //Detect collisions with ores
-        if (oreMined < 3 && lastHitTime > 0.7f && Math.Abs(pickaxe.AngularVelocity) > 3f )
+        if (oreMined < 3 && lastHitTime > 0.7f )
         {
             for (int i = 0; i < ORE_COUNT; i++)
             {
                 if (pickaxe.leftBoundingCircle.CollidesWith(oreCollisions[i]) || pickaxe.rightBoundingCircle.CollidesWith(oreCollisions[i]))
                 {
-                    screenShakeflag = true;
-                    pickaxe.PlayHitSound();
-                    pickaxe.Rebound();
-                    oreMined++;
-                    //remove ore from scene by moving offscreen
-                    oreCollisions[i].Center = new Vector2(-1000f, -1000f);
-                    orePositions[i] = new Vector2(-1000f, -1000f);
-                    lastHitTime = 0f;
+                    if (Math.Abs(pickaxe.AngularVelocity) > 5f)
+                    {
+                        screenShakeflag = true;
+                        pickaxe.PlayHitSound();
+                        pickaxe.Rebound();
+                        oreMined++;
+                        //remove ore from scene by moving offscreen
+                        oreCollisions[i].Center = new Vector2(-1000f, -1000f);
+                        orePositions[i] = new Vector2(-1000f, -1000f);
+                        lastHitTime = 0f;
+
+                    }
+                    else
+                    {
+                        pickaxe.PlayHitSound();
+                        pickaxe.Rebound();
+                        lastHitTime = 0f;
+                    }
+
                 }
             }
             

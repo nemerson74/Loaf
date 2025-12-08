@@ -67,6 +67,7 @@ public class OverworldScene : Scene
         centerX = vw / 2;
         centerY = vh / 2;
         MediaPlayer.Stop();
+        MediaPlayer.Volume = 0.5f;
         MediaPlayer.Play(LOAF.backgroundMusicOverworld);
         MediaPlayer.IsRepeating = true;
         base.Initialize();
@@ -177,7 +178,7 @@ public class OverworldScene : Scene
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Badland)
             {
-                LOAF.ChangeScene(new MiningScene(LOAF, scoreTracker));
+                LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Mining, scoreTracker));
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Grassland)
             {

@@ -74,6 +74,11 @@ namespace LoafGame
         /// </summary>
         public static Song backgroundMusicMinigame { get; private set; }
 
+        /// <summary>
+        /// Background music for overworld screen.
+        /// </summary>
+        public static Song backgroundMusicCredits { get; private set; }
+
         public LOAF()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -106,6 +111,7 @@ namespace LoafGame
             backgroundMusicTitle = Content.Load<Song>("05 A joyfull get together in the royal chambers_[cut_41sec]");
             backgroundMusicOverworld = Content.Load<Song>("04 Heroes theme - Ouverture of Valor_[cut_84sec]");
             backgroundMusicMinigame = Content.Load<Song>("02 The Dark Lord - upbeat version_[cut_60sec]");
+            backgroundMusicCredits = Content.Load<Song>("piano man - Locked In 2025 v1");
         }
 
         protected override void Update(GameTime gameTime)
@@ -127,7 +133,7 @@ namespace LoafGame
                     s_overworldScene = null;
                     TransitionScene();
                 }
-                else if (s_overworldScene is not null)
+                else if (s_overworldScene is not null && s_activeScene is not TutorialScene)
                 {
                     TransitionBackToOverworld();
                 }

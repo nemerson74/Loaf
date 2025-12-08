@@ -46,8 +46,10 @@ public class CarpentryScene : Scene, IParticleEmitter
 
     Texture2D nailTexture;
     private BoundingRectangle nailBounds;
+    private BoundingRectangle nailBounds2;
     private int[] nailHitCounter = new int[3];
     private int nailIndex = 0;
+    private int sideNailIndex = 0;
     private float lastNailHitTime = 0f;
 
     Texture2D woodTexture;
@@ -94,6 +96,39 @@ public class CarpentryScene : Scene, IParticleEmitter
     private static readonly Vector2 HEAD_LEFT_SRC = new Vector2(5f, 3f);
     private static readonly Vector2 HEAD_RIGHT_SRC = new Vector2(11f, 3f);
     private const float HEAD_CIRCLE_RADIUS = 2.3f; // in source pixels, will be scaled by HAMMER_DRAW_SCALE
+
+    //Sprite Positions
+    private static readonly Vector2[] BOARD_POSITIONS = new Vector2[12]
+    {
+        new Vector2(0f, 0f),
+        new Vector2(16f, 0f),
+        new Vector2(32f, 0f),
+        new Vector2(48f, 0f),
+        new Vector2(64f, 0f),
+        new Vector2(80f, 0f),
+        new Vector2(96f, 0f),
+        new Vector2(112f, 0f),
+        new Vector2(128f, 0f),
+        new Vector2(144f, 0f),
+        new Vector2(160f, 0f),
+        new Vector2(176f, 0f)
+    };
+    private static readonly Vector2[] NAIL_POSITIONS = new Vector2[4]
+    {
+        new Vector2(0f, 0f),
+        new Vector2(16f, 0f),
+        new Vector2(32f, 0f),
+        new Vector2(48f, 0f)
+    };
+    private static readonly Vector2[] SIDE_NAIL_POSITIONS = new Vector2[4]
+    {
+        new Vector2(0f, 0f),
+        new Vector2(16f, 0f),
+        new Vector2(32f, 0f),
+        new Vector2(48f, 0f)
+    };
+
+    private static readonly float[] BOARD_ROTATIONS = new float[12] { 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f };
 
     private float currentMaxVelocity = MAX_VELOCITY_1;
 
@@ -482,8 +517,26 @@ public class CarpentryScene : Scene, IParticleEmitter
             SpriteEffects.None,
             0f
         );
-        //draw the nails
+        //draw the downward nail
         for (int i = 0; i < nailIndex+1; i++)
+        {
+            _spriteBatch.Draw(
+                nailTexture,
+                new Vector2(
+                    (i + 1) * 16 * 6 - 14,
+                    vh * 0.85f - 10 + nailHitCounter[i] * 1
+                ),
+                null,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                NAIL_DRAW_SCALE,
+                SpriteEffects.None,
+                0f
+            );
+        }
+        //draw the sideward nail
+        for (int i = 0; i < sideNailIndex + 1; i++)
         {
             _spriteBatch.Draw(
                 nailTexture,

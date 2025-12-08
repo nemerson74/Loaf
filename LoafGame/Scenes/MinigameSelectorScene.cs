@@ -21,6 +21,9 @@ public class MinigameSelectorScene : Scene
     private float leftMargin;
     private float centerX;
 
+    SpriteFont backFont;
+    SpriteFont tutorialFont;
+
     public MinigameSelectorScene(Game game) : base(game) { }
 
     public override void Initialize()
@@ -46,6 +49,8 @@ public class MinigameSelectorScene : Scene
         newGameButton.LoadContent(Content);
         carpentryButton.LoadContent(Content);
         miningButton.LoadContent(Content);
+        backFont = Content.Load<SpriteFont>("vergilia");
+        tutorialFont = Content.Load<SpriteFont>("tutorialFont");
     }
 
     public override void Update(GameTime gameTime)
@@ -83,12 +88,12 @@ public class MinigameSelectorScene : Scene
             if (carpentryButton.Hover)
             {
                 carpentryButton.PlayClickSound();
-                LOAF.ChangeScene(new CarpentryScene(LOAF));
+                LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Carpentry));
             }
             if (miningButton.Hover)
             {
                 miningButton.PlayClickSound();
-                LOAF.ChangeScene(new MiningScene(LOAF));
+                LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Mining));
             }
         }
     }

@@ -3,6 +3,7 @@ using LoafGame.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using System;
 using System.IO;
 
@@ -22,6 +23,8 @@ public class CreditsScene : Scene
 
     public CreditsScene(Game game) : base(game) { }
 
+
+
     public override void Initialize()
     {
         var LOAF = Game as LOAF;
@@ -40,6 +43,11 @@ public class CreditsScene : Scene
             creditsText = File.ReadAllText(readmePath);
         else
             creditsText = "Credits file not found.";
+
+        MediaPlayer.Stop();
+        MediaPlayer.Volume = 0.5f;
+        MediaPlayer.Play(LOAF.backgroundMusicCredits);
+        MediaPlayer.IsRepeating = true;
     }
 
     public override void Update(GameTime gameTime)

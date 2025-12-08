@@ -88,7 +88,7 @@ namespace LoafGame
             hover = collision;
             if (!wasHover && hover && LoafGame.LOAF.ButtonHoverSound != null)
             {
-                LoafGame.LOAF.ButtonHoverSound.Play();
+                LoafGame.LOAF.ButtonHoverSound.Play(0.5f,0f,0f);
             }
         }
 

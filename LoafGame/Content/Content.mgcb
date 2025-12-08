@@ -74,18 +74,6 @@
 /processorParam:Quality=Best
 /build:51_Flee_02.wav
 
-#begin BALL.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:BALL.png
-
 #begin Button.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -214,17 +202,11 @@
 /processorParam:TextureFormat=Color
 /build:nail.png
 
-#begin smile.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:smile.png
+#begin piano man - Locked In 2025 v1.wav
+/importer:WavImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:piano man - Locked In 2025 v1.wav
 
 #begin tilemapkey.tmap
 /importer:BasicTilemapImporter
@@ -351,6 +333,13 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:TitleLayersScaled/background_plains-Sheet5_scaled_3x.png
+
+#begin tutorialFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:tutorialFont.spritefont
 
 #begin vergilia.spritefont
 /importer:FontDescriptionImporter

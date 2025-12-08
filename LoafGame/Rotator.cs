@@ -372,7 +372,7 @@ namespace LoafGame
 
         public void Rebound()
         {
-            AngularVelocity = -AngularVelocity * 0.2f;
+            AngularVelocity = -AngularVelocity * 0.4f;
         }
 
         private static float WrapAngle(float radians)
