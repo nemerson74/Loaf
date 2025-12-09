@@ -4,9 +4,11 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using SharpDX.DirectWrite;
 using SharpDX.DXGI;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 
 namespace LoafGame.Scenes;
@@ -25,6 +27,7 @@ public class CarpentryScene : Scene, IParticleEmitter
 
     private int _score = 0;
     private ScoreTracker _scoreTracker;
+    private ScoreTimer _scoreTimer;
     private bool debugFlag = false;
     Random random = new Random();
     Vector2 shakeOffset = Vector2.Zero;
@@ -35,6 +38,7 @@ public class CarpentryScene : Scene, IParticleEmitter
     private float centerX;
 
     private SpriteBatch _spriteBatch;
+    private SpriteFont font;
 
     //private BoundingPoint cursor;
 
@@ -48,9 +52,18 @@ public class CarpentryScene : Scene, IParticleEmitter
     private BoundingRectangle nailBounds;
     private BoundingRectangle nailBounds2;
     private int[] nailHitCounter = new int[3];
+    private float lastNailHitTime = 0f;
+    private float lastSideNailHitTime = 0f;
+
+    private Vector2[] boardPositions = new Vector2[BOARD_COUNT];
+    private Vector2[] nailPositions = new Vector2[NAIL_COUNT];
+    private Vector2[] sideNailPositions = new Vector2[SIDE_NAIL_COUNT];
+    private int[] nailRandom = new int[NAIL_COUNT];
+    private int[] sideNailRandom = new int[SIDE_NAIL_COUNT];
     private int nailIndex = 0;
     private int sideNailIndex = 0;
-    private float lastNailHitTime = 0f;
+    private float[] nailProgress = new float[NAIL_COUNT];
+    private float[] sideNailProgress = new float[SIDE_NAIL_COUNT];
 
     Texture2D woodTexture;
 
@@ -65,8 +78,10 @@ public class CarpentryScene : Scene, IParticleEmitter
     private float prevangularAcceleration = 0f;
     private float angularAcceleration;
 
-    private bool screenShakeflag = false;
+    private bool screenShakeFlag = false;
     private float screenShakeTimer = 0f;
+
+    private bool gameOverFlag = false;
 
     // --- constants ---
     private const float GRAVITY = 100f;
@@ -91,44 +106,19 @@ public class CarpentryScene : Scene, IParticleEmitter
     private static readonly Vector2 HAMMER_ORIGIN = new Vector2(7f, 15f);
     private const float HAMMER_DRAW_SCALE = 5f;
     private const float NAIL_DRAW_SCALE = 4f;
+    private const float BOARD_DRAW_SCALE = 8f;
+    private const int BOARD_COUNT = 12;
+    private const int SIDE_NAIL_COUNT = 4;
+    private const int NAIL_COUNT = 4;
+    private const float NAIL_HIT_THRESHOLD = 45f;
 
     // two head circles for hammer
     private static readonly Vector2 HEAD_LEFT_SRC = new Vector2(5f, 3f);
     private static readonly Vector2 HEAD_RIGHT_SRC = new Vector2(11f, 3f);
     private const float HEAD_CIRCLE_RADIUS = 2.3f; // in source pixels, will be scaled by HAMMER_DRAW_SCALE
 
-    //Sprite Positions
-    private static readonly Vector2[] BOARD_POSITIONS = new Vector2[12]
-    {
-        new Vector2(0f, 0f),
-        new Vector2(16f, 0f),
-        new Vector2(32f, 0f),
-        new Vector2(48f, 0f),
-        new Vector2(64f, 0f),
-        new Vector2(80f, 0f),
-        new Vector2(96f, 0f),
-        new Vector2(112f, 0f),
-        new Vector2(128f, 0f),
-        new Vector2(144f, 0f),
-        new Vector2(160f, 0f),
-        new Vector2(176f, 0f)
-    };
-    private static readonly Vector2[] NAIL_POSITIONS = new Vector2[4]
-    {
-        new Vector2(0f, 0f),
-        new Vector2(16f, 0f),
-        new Vector2(32f, 0f),
-        new Vector2(48f, 0f)
-    };
-    private static readonly Vector2[] SIDE_NAIL_POSITIONS = new Vector2[4]
-    {
-        new Vector2(0f, 0f),
-        new Vector2(16f, 0f),
-        new Vector2(32f, 0f),
-        new Vector2(48f, 0f)
-    };
-
-    private static readonly float[] BOARD_ROTATIONS = new float[12] { 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f };
+    private static readonly float[] BOARD_ROTATIONS = new float[12] { 0f, 0f, 0f, 0f, 0f, 0f, MathF.PI / 2, MathF.PI / 2, MathF.PI / 2, MathF.PI / 2, MathF.PI / 2, MathF.PI / 2 };
+    private static readonly float[] SIDE_NAIL_ROTATIONS = new float[4] { MathF.PI / 2, MathF.PI / 2, MathF.PI + MathF.PI / 2, MathF.PI + MathF.PI / 2 };
 
     private float currentMaxVelocity = MAX_VELOCITY_1;
 
@@ -142,7 +132,7 @@ public class CarpentryScene : Scene, IParticleEmitter
     private FireballParticleSystem fireballred;
     private FireballParticleSystem fireballs;
 
-    public CarpentryScene(Game game, ScoreTracker scoreTracker = null) : base(game) 
+    public CarpentryScene(Game game, ScoreTracker scoreTracker = null) : base(game)
     {
         _scoreTracker = scoreTracker;
     }
@@ -154,7 +144,7 @@ public class CarpentryScene : Scene, IParticleEmitter
 
         var LOAF = Game as LOAF;
         if (LOAF == null) return;
-        fireballs = new FireballParticleSystem(LOAF, this, "fireballnormalgabe") { Emitting = false};
+        fireballs = new FireballParticleSystem(LOAF, this, "fireballnormalgabe") { Emitting = false };
         LOAF.Components.Add(fireballs);
 
         fireballred = new FireballParticleSystem(LOAF, this, "fireballred") { Emitting = false };
@@ -165,28 +155,73 @@ public class CarpentryScene : Scene, IParticleEmitter
         leftMargin = vw * 0.02f;
         centerX = vw / 2;
 
+        boardPositions = new Vector2[12]
+        {
+            new Vector2(0 * 16 * BOARD_DRAW_SCALE, vh - 11 * BOARD_DRAW_SCALE),
+            new Vector2(1 * 16 * BOARD_DRAW_SCALE, vh - 11 * BOARD_DRAW_SCALE),
+            new Vector2(2 * 16 * BOARD_DRAW_SCALE, vh - 11 * BOARD_DRAW_SCALE),
+            new Vector2(vw - 1 * 16 * BOARD_DRAW_SCALE, vh - 11 * BOARD_DRAW_SCALE),
+            new Vector2(vw - 2 * 16 * BOARD_DRAW_SCALE, vh - 11 * BOARD_DRAW_SCALE),
+            new Vector2(vw - 3 * 16 * BOARD_DRAW_SCALE, vh - 11 * BOARD_DRAW_SCALE),
+            new Vector2(11 * BOARD_DRAW_SCALE, vh * 0.5f - 0 * 16 * BOARD_DRAW_SCALE),
+            new Vector2(11 * BOARD_DRAW_SCALE, vh * 0.5f - 1 * 16 * BOARD_DRAW_SCALE),
+            new Vector2(11 * BOARD_DRAW_SCALE, vh * 0.5f - 2 * 16 * BOARD_DRAW_SCALE),
+            new Vector2(vw + 5 * BOARD_DRAW_SCALE, vh * 0.5f - 0 * 16 * BOARD_DRAW_SCALE),
+            new Vector2(vw + 5 * BOARD_DRAW_SCALE, vh * 0.5f - 1 * 16 * BOARD_DRAW_SCALE),
+            new Vector2(vw + 5 * BOARD_DRAW_SCALE, vh * 0.5f - 2 * 16 * BOARD_DRAW_SCALE)
+        };
+
+        nailPositions = new Vector2[4]
+        {
+            new Vector2(1 * 16 * BOARD_DRAW_SCALE - 0.5f * 16 * NAIL_DRAW_SCALE, vh - 5 * BOARD_DRAW_SCALE - 16 * NAIL_DRAW_SCALE),
+            new Vector2(2 * 16 * BOARD_DRAW_SCALE - 0.5f * 16 * NAIL_DRAW_SCALE, vh - 5 * BOARD_DRAW_SCALE - 16 * NAIL_DRAW_SCALE),
+            new Vector2(vw - 2 * 16 * BOARD_DRAW_SCALE - 0.5f * 16 * NAIL_DRAW_SCALE, vh - 5 * BOARD_DRAW_SCALE - 16 * NAIL_DRAW_SCALE),
+            new Vector2(vw - 1 * 16 * BOARD_DRAW_SCALE - 0.5f * 16 * NAIL_DRAW_SCALE, vh - 5 * BOARD_DRAW_SCALE - 16 * NAIL_DRAW_SCALE)
+        };
+
+        sideNailPositions = new Vector2[4]
+        {
+            new Vector2(5 * BOARD_DRAW_SCALE + 16 * NAIL_DRAW_SCALE, vh * 0.5f - 0 * 16 * BOARD_DRAW_SCALE - 0.5f * 16 * NAIL_DRAW_SCALE),
+            new Vector2(5 * BOARD_DRAW_SCALE + 16 * NAIL_DRAW_SCALE, vh * 0.5f - 1 * 16 * BOARD_DRAW_SCALE - 0.5f * 16 * NAIL_DRAW_SCALE),
+            new Vector2(vw - 16 * NAIL_DRAW_SCALE - 5 * BOARD_DRAW_SCALE, vh * 0.5f - -1 * 16 * BOARD_DRAW_SCALE - 16 * NAIL_DRAW_SCALE - 0.5f * 16 * NAIL_DRAW_SCALE),
+            new Vector2(vw - 16 * NAIL_DRAW_SCALE - 5 * BOARD_DRAW_SCALE, vh * 0.5f - 0 * 16 * BOARD_DRAW_SCALE - 16 * NAIL_DRAW_SCALE - 0.5f * 16 * NAIL_DRAW_SCALE)
+        };
+
+        nailRandom = CreateRandomlySortedArray(0, NAIL_COUNT - 1);
+        sideNailRandom = CreateRandomlySortedArray(0, SIDE_NAIL_COUNT - 1);
+
         MediaPlayer.Stop();
         MediaPlayer.Volume = 0.5f;
         MediaPlayer.Play(LOAF.backgroundMusicMinigame);
         MediaPlayer.IsRepeating = true;
+
+        _scoreTimer = new ScoreTimer(Enums.GameType.Carpentry);
 
         base.Initialize();
     }
 
     public override void LoadContent()
     {
+        var LOAF = Game as LOAF;
+        if (LOAF == null) return;
+
         _spriteBatch = new SpriteBatch(Game.GraphicsDevice);
         hammerTexture = Content.Load<Texture2D>("hammer");
         nailTexture = Content.Load<Texture2D>("nail");
         woodTexture = Content.Load<Texture2D>("wood");
 
+        hammerWhoosh = Content.Load<SoundEffect>("35_Miss_Evade_02");
+        hammerHit = Content.Load<SoundEffect>("39_Block_03");
+
+        font = Content.Load<SpriteFont>("vergilia");
+
         headCircleLeft = new BoundingCircle(Vector2.Zero, HEAD_CIRCLE_RADIUS * HAMMER_DRAW_SCALE);
         headCircleRight = new BoundingCircle(Vector2.Zero, HEAD_CIRCLE_RADIUS * HAMMER_DRAW_SCALE);
 
-        nailBounds = new BoundingRectangle(new Vector2(100, 100), nailTexture.Width * NAIL_DRAW_SCALE, nailTexture.Height-1 * NAIL_DRAW_SCALE);
+        nailBounds = new BoundingRectangle(new Vector2(100, 100), nailTexture.Width * NAIL_DRAW_SCALE, nailTexture.Height - 1 * NAIL_DRAW_SCALE);
+        nailBounds2 = new BoundingRectangle(new Vector2(200, 200), nailTexture.Height - 1 * NAIL_DRAW_SCALE, nailTexture.Width * NAIL_DRAW_SCALE);
 
-        hammerWhoosh = Content.Load<SoundEffect>("35_Miss_Evade_02");
-        hammerHit = Content.Load<SoundEffect>("39_Block_03");
+        _scoreTimer.LoadContent(Content, LOAF.GameScale);
 
         // debug pixel
         pixel = new Texture2D(Game.GraphicsDevice, 1, 1);
@@ -213,15 +248,7 @@ public class CarpentryScene : Scene, IParticleEmitter
         headCircleLeft.Radius = HEAD_CIRCLE_RADIUS * drawScale;
         headCircleRight.Radius = HEAD_CIRCLE_RADIUS * drawScale;
 
-        //update the nail bounds at current nail position
-        if (nailHitCounter[2] < 45)
-        {
-            nailBounds.Position = new Vector2
-            (
-                (nailIndex + 1) * 16 * 6 - 14,
-                vh * 0.85f - 10 + nailHitCounter[nailIndex] * 1
-            );
-        }
+        #region hammerstuff
 
         //delta time
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -309,7 +336,7 @@ public class CarpentryScene : Scene, IParticleEmitter
         if (revolutionsCCW >= 6)
         {
             currentMaxVelocity = MAX_VELOCITY_3;
-            Velocity = headCircleRight.Center  - Position;
+            Velocity = headCircleRight.Center - Position;
             Position = headCircleRight.Center * LOAF.GameScale;
             hammerFrame = 5;
         }
@@ -370,68 +397,111 @@ public class CarpentryScene : Scene, IParticleEmitter
                 fireballs.Emitting = false;
             }
         }
+        #endregion
 
-        //check for nail hits
-        lastNailHitTime += dt;
-        if (Math.Abs(angularVelocity) > 3f && lastNailHitTime > 0.3f)
+        if (!gameOverFlag)
         {
-            //to the left of the nail and swinging CW
-            if (anchor.X < nailBounds.X && angularVelocity > 0)
+            //update the nail bounds at current nail position
+            if (!(nailIndex == NAIL_COUNT - 1 && nailProgress[nailRandom[nailIndex]] >= NAIL_HIT_THRESHOLD))
             {
-                if (headCircleRight.CollidesWith(nailBounds))
+                nailBounds.Position = new Vector2(nailPositions[nailRandom[nailIndex]].X, nailPositions[nailRandom[nailIndex]].Y + nailProgress[nailRandom[nailIndex]]);
+            }
+
+            //update the nail bounds at current nail position
+            if (!(sideNailIndex == NAIL_COUNT - 1 && sideNailProgress[sideNailRandom[sideNailIndex]] >= NAIL_HIT_THRESHOLD))
+            {
+                if (sideNailRandom[sideNailIndex] <= 1)
                 {
-                    lastNailHitTime = 0f;
-                    hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
-                    nailHitCounter[nailIndex] += (int)Math.Abs(angularVelocity) - 3;
-                    if (nailHitCounter[nailIndex] >= 45)
+                    nailBounds2.Position = new Vector2(sideNailPositions[sideNailRandom[sideNailIndex]].X - sideNailProgress[sideNailRandom[sideNailIndex]] - (nailTexture.Height - 1 * NAIL_DRAW_SCALE), sideNailPositions[sideNailRandom[sideNailIndex]].Y);
+                }
+                else
+                {
+                    nailBounds2.Position = new Vector2(sideNailPositions[sideNailRandom[sideNailIndex]].X + sideNailProgress[sideNailRandom[sideNailIndex]], sideNailPositions[sideNailRandom[sideNailIndex]].Y - NAIL_DRAW_SCALE * nailTexture.Width);
+                }
+            }
+            //check for nail hits
+            lastNailHitTime += dt;
+            if (Math.Abs(angularVelocity) > 3f && lastNailHitTime > 0.3f && !(nailIndex == NAIL_COUNT - 1 && nailProgress[nailRandom[nailIndex]] >= NAIL_HIT_THRESHOLD))
+            {
+                //to the left of the nail and swinging CW
+                if (anchor.X < nailBounds.X && angularVelocity > 0)
+                {
+                    if (headCircleRight.CollidesWith(nailBounds))
                     {
-                        //move to next nail
-                        nailIndex++;
-                        nailIndex = Math.Min(nailIndex, 2);
-                        screenShakeflag = true;
+                        NailHit();
+                    }
+                }
+                //to the right of the nail and swinging CCW
+                if (anchor.X > nailBounds.X + nailBounds.Width && angularVelocity < 0)
+                {
+                    if (headCircleLeft.CollidesWith(nailBounds))
+                    {
+                        NailHit();
+                    }
+                }
+                //to the left of the nail and swinging CCW
+                if (anchor.X < nailBounds.X && angularVelocity < 0)
+                {
+                    if (headCircleLeft.CollidesWith(nailBounds))
+                    {
+                        NailBadHit();
+                    }
+                }
+                //to the right of the nail and swinging CW
+                if (anchor.X > nailBounds.X + nailBounds.Width && angularVelocity > 0)
+                {
+                    if (headCircleRight.CollidesWith(nailBounds))
+                    {
+                        NailBadHit();
                     }
                 }
             }
-            //to the right of the nail and swinging CCW
-            if (anchor.X > nailBounds.X + nailBounds.Width && angularVelocity < 0)
+            //check for side nail hits
+            lastSideNailHitTime += dt;
+            if (Math.Abs(angularVelocity) > 3f && lastSideNailHitTime > 0.3f && !(sideNailIndex == NAIL_COUNT - 1 && sideNailProgress[sideNailRandom[sideNailIndex]] >= NAIL_HIT_THRESHOLD))
             {
-                if (headCircleLeft.CollidesWith(nailBounds))
+                //above nail and swinging CW
+                if (anchor.Y < nailBounds2.Y && angularVelocity > 0)
                 {
-                    lastNailHitTime = 0f;
-                    hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
-                    nailHitCounter[nailIndex] += (int)Math.Abs(angularVelocity) - 3;
-                    if (nailHitCounter[nailIndex] >= 45)
+                    if (headCircleRight.CollidesWith(nailBounds2))
                     {
-                        //move to next nail
-                        nailIndex++;
-                        nailIndex = Math.Min(nailIndex, 2);
-                        screenShakeflag = true;
+                        if (sideNailRandom[sideNailIndex] <= 1) SideNailHit(); else SideNailBadHit();
+                    }
+                }
+                //below nail and swinging CCW
+                if (anchor.Y > nailBounds2.Y + nailBounds2.Height && angularVelocity < 0)
+                {
+                    if (headCircleLeft.CollidesWith(nailBounds2))
+                    {
+                        if (sideNailRandom[sideNailIndex] <= 1) SideNailHit(); else SideNailBadHit();
+                    }
+                }
+                //above and swinging CCW
+                if (anchor.Y < nailBounds2.Y && angularVelocity < 0)
+                {
+                    if (headCircleLeft.CollidesWith(nailBounds2))
+                    {
+                        if (sideNailRandom[sideNailIndex] <= 1) SideNailBadHit(); else SideNailHit();
+                    }
+                }
+                //below nail and swinging CW
+                if (anchor.Y > nailBounds2.Y + nailBounds2.Height && angularVelocity > 0)
+                {
+                    if (headCircleRight.CollidesWith(nailBounds2))
+                    {
+                        if (sideNailRandom[sideNailIndex] <= 1) SideNailBadHit(); else SideNailHit();
                     }
                 }
             }
-            //to the left of the nail and swinging CCW
-            if (anchor.X < nailBounds.X && angularVelocity < 0)
+            if ((sideNailIndex == NAIL_COUNT - 1 && sideNailProgress[sideNailRandom[sideNailIndex]] >= NAIL_HIT_THRESHOLD) && (nailIndex == NAIL_COUNT - 1 && nailProgress[nailRandom[nailIndex]] >= NAIL_HIT_THRESHOLD))
             {
-                if (headCircleLeft.CollidesWith(nailBounds))
-                {
-                    lastNailHitTime = 0f;
-                    hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
-                    nailHitCounter[nailIndex] -= (int)Math.Abs(angularVelocity) - 3;
-                }
-            }
-            //to the right of the nail and swinging CW
-            if (anchor.X > nailBounds.X + nailBounds.Width && angularVelocity > 0)
-            {
-                if (headCircleRight.CollidesWith(nailBounds))
-                {
-                    lastNailHitTime = 0f;
-                    hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
-                    nailHitCounter[nailIndex] -= (int)Math.Abs(angularVelocity) - 3;
-                }
+                _score = _scoreTimer.ReturnScore();
+                gameOverFlag = true;
             }
         }
 
-        if (screenShakeflag)
+
+        if (screenShakeFlag)
         {
             screenShakeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
             float shakeMagnitude = 1f;
@@ -446,7 +516,7 @@ public class CarpentryScene : Scene, IParticleEmitter
 
             if (screenShakeTimer >= SCREEN_SHAKE_DURATION)
             {
-                screenShakeflag = false;
+                screenShakeFlag = false;
                 screenShakeTimer = 0;
                 shakeOffset = Vector2.Zero;
             }
@@ -473,6 +543,8 @@ public class CarpentryScene : Scene, IParticleEmitter
             LOAF.ChangeScene(new TitleScene(LOAF));
             return;
         }
+
+        _scoreTimer.Update(gameTime);
     }
 
     public override void Draw(GameTime gameTime)
@@ -484,7 +556,7 @@ public class CarpentryScene : Scene, IParticleEmitter
         _spriteBatch.Begin(transformMatrix: viewMatrix, samplerState: SamplerState.PointClamp);
 
         Rectangle sourceRect = new Rectangle(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
-        switch(hammerFrame)
+        switch (hammerFrame)
         {
             case 0:
                 sourceRect = new Rectangle(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
@@ -505,6 +577,8 @@ public class CarpentryScene : Scene, IParticleEmitter
                 sourceRect = new Rectangle(FRAME_WIDTH * 2, FRAME_HEIGHT, FRAME_WIDTH, FRAME_HEIGHT);
                 break;
         }
+        //draw the score timer
+        _scoreTimer.Draw(_spriteBatch);
         //draw the hammer
         _spriteBatch.Draw(
             hammerTexture,
@@ -518,69 +592,94 @@ public class CarpentryScene : Scene, IParticleEmitter
             0f
         );
         //draw the downward nail
-        for (int i = 0; i < nailIndex+1; i++)
+        for (int i = 0; i < NAIL_COUNT; i++)
         {
-            _spriteBatch.Draw(
-                nailTexture,
-                new Vector2(
-                    (i + 1) * 16 * 6 - 14,
-                    vh * 0.85f - 10 + nailHitCounter[i] * 1
-                ),
-                null,
-                Color.White,
-                0f,
-                Vector2.Zero,
-                NAIL_DRAW_SCALE,
-                SpriteEffects.None,
-                0f
-            );
+            if (i == nailRandom[nailIndex] || nailProgress[i] > 0)
+            {
+                _spriteBatch.Draw(
+                    nailTexture,
+                    new Vector2(
+                        nailPositions[i].X,
+                        nailPositions[i].Y + nailProgress[i]
+                    ),
+                    null,
+                    Color.White,
+                    0f,
+                    Vector2.Zero,
+                    NAIL_DRAW_SCALE,
+                    SpriteEffects.None,
+                    0f
+                );
+            }
         }
-        //draw the sideward nail
-        for (int i = 0; i < sideNailIndex + 1; i++)
+        //draw the sideward nail left
+        for (int i = 0; i < SIDE_NAIL_COUNT-2; i++)
         {
-            _spriteBatch.Draw(
-                nailTexture,
-                new Vector2(
-                    (i + 1) * 16 * 6 - 14,
-                    vh * 0.85f - 10 + nailHitCounter[i] * 1
-                ),
-                null,
-                Color.White,
-                0f,
-                Vector2.Zero,
-                NAIL_DRAW_SCALE,
-                SpriteEffects.None,
-                0f
-            );
+            if (i == sideNailRandom[sideNailIndex] || sideNailProgress[i] > 0)
+            {
+                _spriteBatch.Draw(
+                    nailTexture,
+                    new Vector2(
+                        sideNailPositions[i].X - sideNailProgress[i],
+                        sideNailPositions[i].Y
+                    ),
+                    null,
+                    Color.White,
+                    SIDE_NAIL_ROTATIONS[i],
+                    Vector2.Zero,
+                    NAIL_DRAW_SCALE,
+                    SpriteEffects.None,
+                    0f
+                );
+            }
+        }
+        //draw the sideward nail right
+        for (int i = 2; i < SIDE_NAIL_COUNT; i++)
+        {
+            if (i == sideNailRandom[sideNailIndex] || sideNailProgress[i] > 0)
+            {
+                _spriteBatch.Draw(
+                    nailTexture,
+                    new Vector2(
+                        sideNailPositions[i].X + sideNailProgress[i],
+                        sideNailPositions[i].Y
+                    ),
+                    null,
+                    Color.White,
+                    SIDE_NAIL_ROTATIONS[i],
+                    Vector2.Zero,
+                    NAIL_DRAW_SCALE,
+                    SpriteEffects.None,
+                    0f
+                );
+            }
         }
         //draw the planks
-        for (int i = 0; i < nailIndex + 2; i++)
+        for (int i = 0; i < BOARD_COUNT; i++)
         {
             _spriteBatch.Draw(
                 woodTexture,
-                new Vector2(
-                    i * 16 * 6 + 10,
-                    vh * 0.85f
-                    ),
+                boardPositions[i],
                 null,
                 Color.White,
-                0f,
+                BOARD_ROTATIONS[i],
                 Vector2.Zero,
-                8f,
+                BOARD_DRAW_SCALE,
                 SpriteEffects.None,
                 0f
             );
         }
-        SpriteFont font = Content.Load<SpriteFont>("vergilia");
         float fontScale = 1f;
-        _spriteBatch.DrawString(font, "Mouse Buttons to Rotate, Spacebar: DEBUG", new Vector2(vw * 0.7f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
-        _spriteBatch.DrawString(font, "ESC to return", new Vector2(vw * 0.02f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "Mouse Buttons to Rotate, Spacebar: DEBUG", new Vector2(vw * 0.6f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "ESC to return", new Vector2(vw * 0.1f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
-        if (nailHitCounter[2] >= 45)
+        if (gameOverFlag)
         {
-            _spriteBatch.DrawString(font, "All nails hammered! Well done!", new Vector2(50, 100), Color.Lime, 0f, Vector2.Zero, 1.5f, SpriteEffects.None, 0f);
+            string doneString = "All nails hammered! Well done!";
+            Vector2 lineSize = font.MeasureString(doneString);
+            Vector2 linePos = new Vector2(centerX - lineSize.X / 2f, vh/2f);
+            _spriteBatch.DrawString(font, doneString, linePos, Color.Yellow, 0f, Vector2.Zero, 1.5f, SpriteEffects.None, 0f);
             _score = 3;
-            nailBounds.Position = new Vector2(-1000, -1000);
         }
 
         if (debugFlag)
@@ -588,13 +687,14 @@ public class CarpentryScene : Scene, IParticleEmitter
             Debug.DrawCircleOutline(_spriteBatch, Game.GraphicsDevice, headCircleLeft.Center, headCircleLeft.Radius, Color.Red);
             Debug.DrawCircleOutline(_spriteBatch, Game.GraphicsDevice, headCircleRight.Center, headCircleLeft.Radius, Color.Red);
             Debug.DrawRectangleOutline(_spriteBatch, Game.GraphicsDevice, nailBounds, Color.Cyan);
+            Debug.DrawRectangleOutline(_spriteBatch, Game.GraphicsDevice, nailBounds2, Color.Cyan);
             Debug.DrawPoint(_spriteBatch, Game.GraphicsDevice, anchor, Color.Orange);
 
-            _spriteBatch.DrawString(font, "CW: " + revolutionsCW.ToString(), new Vector2(vw * 0.22f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, "CW: " + revolutionsCW.ToString(), new Vector2(vw * 0.25f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
-            _spriteBatch.DrawString(font, "CCW: " + revolutionsCCW.ToString(), new Vector2(vw * 0.32f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, "CCW: " + revolutionsCCW.ToString(), new Vector2(vw * 0.35f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
-            _spriteBatch.DrawString(font, "Speed: " + ((int)angularVelocity).ToString(), new Vector2(vw * 0.42f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, "Speed: " + ((int)angularVelocity).ToString(), new Vector2(vw * 0.45f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
         }
         _spriteBatch.End();
     }
@@ -611,5 +711,61 @@ public class CarpentryScene : Scene, IParticleEmitter
         float c = MathF.Cos(angle);
         float s = MathF.Sin(angle);
         return new Vector2(v.X * c - v.Y * s, v.X * s + v.Y * c);
+    }
+
+    private static int[] CreateRandomlySortedArray(int start, int end)
+    {
+        // Calculate the count of numbers in the range
+        int count = end - start + 1;
+
+        // Generate a sequence of numbers within the range, then shuffle them randomly
+        // and convert to an array.
+        int[] randomlySortedArray = Enumerable.Range(start, count)
+                                            .OrderBy(i => Guid.NewGuid())
+                                            .ToArray();
+
+        return randomlySortedArray;
+    }
+
+    private void NailHit()
+    {
+        lastNailHitTime = 0f;
+        hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
+        nailProgress[nailRandom[nailIndex]] += (int)Math.Abs(angularVelocity) - 2;
+        if (nailProgress[nailRandom[nailIndex]] >= NAIL_HIT_THRESHOLD)
+        {
+            //move to next nail
+            nailIndex++;
+            nailIndex = Math.Min(nailIndex, NAIL_COUNT - 1);
+            screenShakeFlag = true;
+        }
+    }
+
+    private void NailBadHit()
+    {
+        lastNailHitTime = 0f;
+        hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
+        nailProgress[nailRandom[nailIndex]] -= (int)Math.Abs(angularVelocity) - 3;
+    }
+
+    private void SideNailHit()
+    {
+        lastSideNailHitTime = 0f;
+        hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
+        sideNailProgress[sideNailRandom[sideNailIndex]] += (int)Math.Abs(angularVelocity) - 2;
+        if (sideNailProgress[sideNailRandom[sideNailIndex]] >= NAIL_HIT_THRESHOLD)
+        {
+            //move to next nail
+            sideNailIndex++;
+            sideNailIndex = Math.Min(sideNailIndex, SIDE_NAIL_COUNT - 1);
+            screenShakeFlag = true;
+        }
+    }
+
+    private void SideNailBadHit()
+    {
+        lastSideNailHitTime = 0f;
+        hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
+        sideNailProgress[sideNailRandom[sideNailIndex]] -= (int)Math.Abs(angularVelocity) - 3;
     }
 }

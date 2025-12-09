@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.IO;
+using static LoafGame.Enums;
 
 namespace LoafGame.Scenes
 {
@@ -24,6 +25,8 @@ namespace LoafGame.Scenes
         private float barFillProgress = 0.0f;
 
         string[] tutorialText;
+
+        string limitsString;
 
         SpriteFont continueFont;
         SpriteFont tutorialFont;
@@ -53,6 +56,17 @@ namespace LoafGame.Scenes
             vh = Game.GraphicsDevice.Viewport.Height / LOAF.GameScale;
             leftMargin = vw * 0.02f;
             centerX = vw / 2;
+
+            float[] limits = CurrentTutorialType switch
+            {
+                TutorialType.Carpentry => Enums.CARPENTRY_LIMITS,
+                TutorialType.Mining => Enums.MINING_LIMITS,
+                TutorialType.Cactus => Enums.CACTUS_LIMITS,
+                TutorialType.Wheat => Enums.WHEAT_LIMITS,
+                _ => Enums.CARPENTRY_LIMITS
+            };
+
+            limitsString = $"3={limits[0]}s, 2={limits[1]}s, 1={limits[2]}s";
 
             float buttonRowY = vh * 0.5f;
             float buttonSpacing = vw * 0.15f;
@@ -127,6 +141,11 @@ namespace LoafGame.Scenes
                 Vector2 linePos = new Vector2(centerX - lineSize.X / 2f, vh * (0.2f + i * 0.1f));
                 _spriteBatch.DrawString(tutorialFont, line, linePos, Color.White, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
             }
+
+            string limitsLine = "Times to aim for: " + limitsString;
+            Vector2 limitsLineSize = tutorialFont.MeasureString(limitsLine);
+            Vector2 limitsLinePos = new Vector2(centerX - limitsLineSize.X / 2f, vh * (0.2f + tutorialText.Length * 0.1f));
+            _spriteBatch.DrawString(tutorialFont, limitsLine, limitsLinePos, Color.White, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
             // progress bar
             float progress = MathHelper.Clamp(barFillProgress / barFillTime, 0f, 1f);

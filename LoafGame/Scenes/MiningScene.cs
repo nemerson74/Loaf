@@ -25,9 +25,11 @@ public class MiningScene : Scene, IParticleEmitter
 
     private int _score = 0;
     private ScoreTracker _scoreTracker;
+    private ScoreTimer _scoreTimer;
     private bool debugFlag = false;
     Random random = new Random();
     Vector2 shakeOffset = Vector2.Zero;
+    private float _gameScale;
 
     private float vw;
     private float vh;
@@ -45,15 +47,19 @@ public class MiningScene : Scene, IParticleEmitter
     private Rotator pickaxe = new Rotator(){ TextureName = "Mining/pickaxe" };
 
     private int oreMined = 0;
-    private Vector2[] rockPositions = new Vector2[ROCK_COUNT];
-    private Vector2[] orePositions = new Vector2[ORE_COUNT];
-    private BoundingCircle[] rockCollisions = new BoundingCircle[ROCK_COUNT];
-    private BoundingCircle[] oreCollisions = new BoundingCircle[ORE_COUNT];
+    private Vector2[] rockPositionsRight = new Vector2[ROCK_COUNT/2];
+    private Vector2[] orePositionsRight = new Vector2[ORE_COUNT/2];
+    private BoundingCircle[] rockCollisionsRight = new BoundingCircle[ROCK_COUNT/2];
+    private BoundingCircle[] oreCollisionsRight = new BoundingCircle[ORE_COUNT/2];
+    private Vector2[] rockPositionsLeft = new Vector2[ROCK_COUNT/2];
+    private Vector2[] orePositionsLeft = new Vector2[ORE_COUNT/2];
+    private BoundingCircle[] rockCollisionsLeft = new BoundingCircle[ROCK_COUNT/2];
+    private BoundingCircle[] oreCollisionsLeft = new BoundingCircle[ORE_COUNT/2];
 
     // --- constants ---
     private const float SCREEN_SHAKE_DURATION = 0.5f;
-    private const int ROCK_COUNT = 21;
-    private const int ORE_COUNT = 3;
+    private const int ROCK_COUNT = 42;
+    private const int ORE_COUNT = 6;
     private const float ROCK_DRAW_SCALE = 5f;
 
     // two head circles for hammer
@@ -72,21 +78,27 @@ public class MiningScene : Scene, IParticleEmitter
 
         var LOAF = Game as LOAF;
         if (LOAF == null) return;
+        _gameScale = LOAF.GameScale;
         fireballs = new FireballParticleSystem(LOAF, this, "fireballnormalgabe") { Emitting = false};
         LOAF.Components.Add(fireballs);
 
         fireballred = new FireballParticleSystem(LOAF, this, "fireballred") { Emitting = false };
         LOAF.Components.Add(fireballred);
 
-        vw = Game.GraphicsDevice.Viewport.Width / LOAF.GameScale;
-        vh = Game.GraphicsDevice.Viewport.Height / LOAF.GameScale;
+        vw = Game.GraphicsDevice.Viewport.Width / _gameScale;
+        vh = Game.GraphicsDevice.Viewport.Height / _gameScale;
         leftMargin = vw * 0.02f;
         centerX = vw / 2;
 
         // constrain spawn ranges to the right side and within vertical bounds
-        float minX = vw * 0.6f;
-        float minx2 = vw * 0.7f;
-        float maxX = vw * 0.95f;
+        // right side ranges
+        float minXRight = vw * 0.55f;
+        float minXRightOre = vw * 0.65f;
+        float maxXRight = vw * 0.95f;
+        // left side ranges
+        float maxXLeft = vw * 0.35f;
+        float minXLeft = vw * 0.00f;
+        float minXLeftOre = vw * 0.00f;
         float minY1 = vh * 0.1f;
         float maxY1 = vh * 0.3f;
         float minY2 = vh * 0.3f;
@@ -95,64 +107,115 @@ public class MiningScene : Scene, IParticleEmitter
         float maxY3 = vh * 0.9f;
 
         // rocks: fill all indices without gaps
-        int rocksPerBand = ROCK_COUNT / 3;
-        int rockRemainder = ROCK_COUNT - rocksPerBand * 3;
+        // RIGHT SIDE ROCKS
+        int rocksPerBandRight = (ROCK_COUNT/2) / 3;
+        int rockRemainderRight = (ROCK_COUNT/2) - rocksPerBandRight * 3;
         int rIndex = 0;
-        for (int i = 0; i < rocksPerBand + (rockRemainder > 0 ? 1 : 0); i++, rIndex++)
+        for (int i = 0; i < rocksPerBandRight + (rockRemainderRight > 0 ? 1 : 0); i++, rIndex++)
         {
-            float xPos = (float)(minX + random.NextDouble() * (maxX - minX));
+            float xPos = (float)(minXRight + random.NextDouble() * (maxXRight - minXRight));
             float yPos = (float)(minY1 + random.NextDouble() * (maxY1 - minY1));
-            rockPositions[rIndex] = new Vector2(xPos, yPos);
+            rockPositionsRight[rIndex] = new Vector2(xPos, yPos);
         }
-        for (int i = 0; i < rocksPerBand + (rockRemainder > 1 ? 1 : 0); i++, rIndex++)
+        for (int i = 0; i < rocksPerBandRight + (rockRemainderRight > 1 ? 1 : 0); i++, rIndex++)
         {
-            float xPos = (float)(minX + random.NextDouble() * (maxX - minX));
+            float xPos = (float)(minXRight + random.NextDouble() * (maxXRight - minXRight));
             float yPos = (float)(minY2 + random.NextDouble() * (maxY2 - minY2));
-            rockPositions[rIndex] = new Vector2(xPos, yPos);
+            rockPositionsRight[rIndex] = new Vector2(xPos, yPos);
         }
-        for (int i = 0; i < rocksPerBand; i++, rIndex++)
+        for (int i = 0; i < rocksPerBandRight; i++, rIndex++)
         {
-            float xPos = (float)(minX + random.NextDouble() * (maxX - minX));
+            float xPos = (float)(minXRight + random.NextDouble() * (maxXRight - minXRight));
             float yPos = (float)(minY3 + random.NextDouble() * (maxY3 - minY3));
-            rockPositions[rIndex] = new Vector2(xPos, yPos);
+            rockPositionsRight[rIndex] = new Vector2(xPos, yPos);
         }
 
-        // ores: fill all indices without gaps
-        int oresPerBand = ORE_COUNT / 3;
-        int oreRemainder = ORE_COUNT - oresPerBand * 3;
+        // RIGHT SIDE ores: fill all indices without gaps
+        int oresPerBandRight = (ORE_COUNT/2) / 3;
+        int oreRemainderRight = (ORE_COUNT/2) - oresPerBandRight * 3;
         int oIndex = 0;
-        for (int i = 0; i < oresPerBand + (oreRemainder > 0 ? 1 : 0); i++, oIndex++)
+        for (int i = 0; i < oresPerBandRight + (oreRemainderRight > 0 ? 1 : 0); i++, oIndex++)
         {
-            float xPos = (float)(minx2 + random.NextDouble() * (maxX - minx2));
+            float xPos = (float)(minXRightOre + random.NextDouble() * (maxXRight - minXRightOre));
             float yPos = (float)(minY1 + random.NextDouble() * (maxY1 - minY1));
-            orePositions[oIndex] = new Vector2(xPos, yPos);
+            orePositionsRight[oIndex] = new Vector2(xPos, yPos);
         }
-        for (int i = 0; i < oresPerBand + (oreRemainder > 1 ? 1 : 0); i++, oIndex++)
+        for (int i = 0; i < oresPerBandRight + (oreRemainderRight > 1 ? 1 : 0); i++, oIndex++)
         {
-            float xPos = (float)(minx2 + random.NextDouble() * (maxX - minx2));
+            float xPos = (float)(minXRightOre + random.NextDouble() * (maxXRight - minXRightOre));
             float yPos = (float)(minY2 + random.NextDouble() * (maxY2 - minY2));
-            orePositions[oIndex] = new Vector2(xPos, yPos);
+            orePositionsRight[oIndex] = new Vector2(xPos, yPos);
         }
-        for (int i = 0; i < oresPerBand; i++, oIndex++)
+        for (int i = 0; i < oresPerBandRight; i++, oIndex++)
         {
-            float xPos = (float)(minx2 + random.NextDouble() * (maxX - minx2));
+            float xPos = (float)(minXRightOre + random.NextDouble() * (maxXRight - minXRightOre));
             float yPos = (float)(minY3 + random.NextDouble() * (maxY3 - minY3));
-            orePositions[oIndex] = new Vector2(xPos, yPos);
+            orePositionsRight[oIndex] = new Vector2(xPos, yPos);
         }
 
-        for (int i = 0; i < ROCK_COUNT; i++)
+        // LEFT SIDE ROCKS
+        int rocksPerBandLeft = (ROCK_COUNT/2) / 3;
+        int rockRemainderLeft = (ROCK_COUNT/2) - rocksPerBandLeft * 3;
+        int rlIndex = 0;
+        for (int i = 0; i < rocksPerBandLeft + (rockRemainderLeft > 0 ? 1 : 0); i++, rlIndex++)
         {
-            rockCollisions[i] = new BoundingCircle(rockPositions[i], 0f);
+            float xPos = (float)(minXLeft + random.NextDouble() * (maxXLeft - minXLeft));
+            float yPos = (float)(minY1 + random.NextDouble() * (maxY1 - minY1));
+            rockPositionsLeft[rlIndex] = new Vector2(xPos, yPos);
         }
-        for (int i = 0; i < ORE_COUNT; i++)
+        for (int i = 0; i < rocksPerBandLeft + (rockRemainderLeft > 1 ? 1 : 0); i++, rlIndex++)
         {
-            oreCollisions[i] = new BoundingCircle(orePositions[i], 0f);
+            float xPos = (float)(minXLeft + random.NextDouble() * (maxXLeft - minXLeft));
+            float yPos = (float)(minY2 + random.NextDouble() * (maxY2 - minY2));
+            rockPositionsLeft[rlIndex] = new Vector2(xPos, yPos);
+        }
+        for (int i = 0; i < rocksPerBandLeft; i++, rlIndex++)
+        {
+            float xPos = (float)(minXLeft + random.NextDouble() * (maxXLeft - minXLeft));
+            float yPos = (float)(minY3 + random.NextDouble() * (maxY3 - minY3));
+            rockPositionsLeft[rlIndex] = new Vector2(xPos, yPos);
+        }
+
+        // LEFT SIDE ores
+        int oresPerBandLeft = (ORE_COUNT/2) / 3;
+        int oreRemainderLeft = (ORE_COUNT/2) - oresPerBandLeft * 3;
+        int olIndex = 0;
+        for (int i = 0; i < oresPerBandLeft + (oreRemainderLeft > 0 ? 1 : 0); i++, olIndex++)
+        {
+            float xPos = (float)(minXLeftOre + random.NextDouble() * (maxXLeft - minXLeftOre));
+            float yPos = (float)(minY1 + random.NextDouble() * (maxY1 - minY1));
+            orePositionsLeft[olIndex] = new Vector2(xPos, yPos);
+        }
+        for (int i = 0; i < oresPerBandLeft + (oreRemainderLeft > 1 ? 1 : 0); i++, olIndex++)
+        {
+            float xPos = (float)(minXLeftOre + random.NextDouble() * (maxXLeft - minXLeftOre));
+            float yPos = (float)(minY2 + random.NextDouble() * (maxY2 - minY2));
+            orePositionsLeft[olIndex] = new Vector2(xPos, yPos);
+        }
+        for (int i = 0; i < oresPerBandLeft; i++, olIndex++)
+        {
+            float xPos = (float)(minXLeftOre + random.NextDouble() * (maxXLeft - minXLeftOre));
+            float yPos = (float)(minY3 + random.NextDouble() * (maxY3 - minY3));
+            orePositionsLeft[olIndex] = new Vector2(xPos, yPos);
+        }
+
+        for (int i = 0; i < ROCK_COUNT/2; i++)
+        {
+            rockCollisionsRight[i] = new BoundingCircle(rockPositionsRight[i], 0f);
+            rockCollisionsLeft[i] = new BoundingCircle(rockPositionsLeft[i], 0f);
+        }
+        for (int i = 0; i < ORE_COUNT/2; i++)
+        {
+            oreCollisionsRight[i] = new BoundingCircle(orePositionsRight[i], 0f);
+            oreCollisionsLeft[i] = new BoundingCircle(orePositionsLeft[i], 0f);
         }
 
         MediaPlayer.Stop();
         MediaPlayer.Volume = 0.5f;
         MediaPlayer.Play(LOAF.backgroundMusicMinigame);
         MediaPlayer.IsRepeating = true;
+
+        _scoreTimer = new ScoreTimer(Enums.GameType.Mining);
 
         base.Initialize();
     }
@@ -162,7 +225,7 @@ public class MiningScene : Scene, IParticleEmitter
         var LOAF = Game as LOAF;
         if (LOAF == null) return;
         _spriteBatch = new SpriteBatch(Game.GraphicsDevice);
-        pickaxe.LoadContent(LOAF.Content, LOAF.GameScale);
+        pickaxe.LoadContent(LOAF.Content, _gameScale);
         rockTexture = LOAF.Content.Load<Texture2D>("Mining/Rock");
         oreTexture = LOAF.Content.Load<Texture2D>("Mining/Ore");
 
@@ -172,14 +235,18 @@ public class MiningScene : Scene, IParticleEmitter
         Vector2 rockCenterOffset = new Vector2(rockTexture.Width, rockTexture.Height) * (ROCK_DRAW_SCALE / 2f);
         Vector2 oreCenterOffset = new Vector2(oreTexture.Width, oreTexture.Height) * (ROCK_DRAW_SCALE / 2f);
 
-        for (int i = 0; i < ROCK_COUNT; i++)
+        for (int i = 0; i < ROCK_COUNT/2; i++)
         {
-            rockCollisions[i] = new BoundingCircle(rockPositions[i] + rockCenterOffset, rockRadius*.8f);
+            rockCollisionsRight[i] = new BoundingCircle(rockPositionsRight[i] + rockCenterOffset, rockRadius*.8f);
+            rockCollisionsLeft[i] = new BoundingCircle(rockPositionsLeft[i] + rockCenterOffset, rockRadius*.8f);
         }
-        for (int i = 0; i < ORE_COUNT; i++)
+        for (int i = 0; i < ORE_COUNT/2; i++)
         {
-            oreCollisions[i] = new BoundingCircle(orePositions[i] + oreCenterOffset, oreRadius*.8f);
+            oreCollisionsRight[i] = new BoundingCircle(orePositionsRight[i] + oreCenterOffset, oreRadius*.8f);
+            oreCollisionsLeft[i] = new BoundingCircle(orePositionsLeft[i] + oreCenterOffset, oreRadius*.8f);
         }
+
+        _scoreTimer.LoadContent(LOAF.Content, _gameScale);
 
     }
 
@@ -198,11 +265,15 @@ public class MiningScene : Scene, IParticleEmitter
 
         //Detect collisions with rocks
         lastHitTime += dt;
-        if (oreMined < 3 && lastHitTime > 0.7f)
+        if (oreMined < ORE_COUNT && lastHitTime > 0.7f)
         {
-            for (int i = 0; i < ROCK_COUNT; i++)
+            // choose side based on anchor
+            bool rightSide = pickaxe.Anchor.X >= centerX;
+            var rockArray = rightSide ? rockCollisionsRight : rockCollisionsLeft;
+            var rockPosArray = rightSide ? rockPositionsRight : rockPositionsLeft;
+            for (int i = 0; i < rockArray.Length; i++)
             {
-                if (pickaxe.leftBoundingCircle.CollidesWith(rockCollisions[i]) || pickaxe.rightBoundingCircle.CollidesWith(rockCollisions[i]))
+                if (pickaxe.leftBoundingCircle.CollidesWith(rockArray[i]) || pickaxe.rightBoundingCircle.CollidesWith(rockArray[i]))
                 {
                     if( Math.Abs(pickaxe.AngularVelocity) > 5f)
                     {
@@ -210,8 +281,8 @@ public class MiningScene : Scene, IParticleEmitter
                         pickaxe.PlayHitSound();
                         pickaxe.Rebound();
                         //remove rock from scene by moving offscreen
-                        rockCollisions[i].Center = new Vector2(-1000f, -1000f);
-                        rockPositions[i] = new Vector2(-1000f, -1000f);
+                        rockArray[i].Center = new Vector2(-1000f, -1000f);
+                        rockPosArray[i] = new Vector2(-1000f, -1000f);
                         lastHitTime = 0f;
 
                     }
@@ -225,11 +296,14 @@ public class MiningScene : Scene, IParticleEmitter
             }
         }
         //Detect collisions with ores
-        if (oreMined < 3 && lastHitTime > 0.7f )
+        if (oreMined < ORE_COUNT && lastHitTime > 0.7f )
         {
-            for (int i = 0; i < ORE_COUNT; i++)
+            bool rightSide = pickaxe.Anchor.X >= centerX;
+            var oreArray = rightSide ? oreCollisionsRight : oreCollisionsLeft;
+            var orePosArray = rightSide ? orePositionsRight : orePositionsLeft;
+            for (int i = 0; i < oreArray.Length; i++)
             {
-                if (pickaxe.leftBoundingCircle.CollidesWith(oreCollisions[i]) || pickaxe.rightBoundingCircle.CollidesWith(oreCollisions[i]))
+                if (pickaxe.leftBoundingCircle.CollidesWith(oreArray[i]) || pickaxe.rightBoundingCircle.CollidesWith(oreArray[i]))
                 {
                     if (Math.Abs(pickaxe.AngularVelocity) > 5f)
                     {
@@ -238,8 +312,8 @@ public class MiningScene : Scene, IParticleEmitter
                         pickaxe.Rebound();
                         oreMined++;
                         //remove ore from scene by moving offscreen
-                        oreCollisions[i].Center = new Vector2(-1000f, -1000f);
-                        orePositions[i] = new Vector2(-1000f, -1000f);
+                        oreArray[i].Center = new Vector2(-1000f, -1000f);
+                        orePosArray[i] = new Vector2(-1000f, -1000f);
                         lastHitTime = 0f;
 
                     }
@@ -323,18 +397,31 @@ public class MiningScene : Scene, IParticleEmitter
     public override void Draw(GameTime gameTime)
     {
         Game.GraphicsDevice.Clear(Color.DimGray);
-        var LOAF = Game as LOAF;
         // combine scale and screen-shake translation into the view matrix
-        Matrix viewMatrix = Matrix.CreateScale(LOAF.GameScale) * Matrix.CreateTranslation(shakeOffset.X, shakeOffset.Y, 0f);
+        Matrix viewMatrix = Matrix.CreateScale(_gameScale) * Matrix.CreateTranslation(shakeOffset.X, shakeOffset.Y, 0f);
         _spriteBatch.Begin(transformMatrix: viewMatrix, samplerState: SamplerState.PointClamp);
 
         pickaxe.Draw(gameTime, _spriteBatch);
         //draw rocks
-        for (int i = 0; i < ROCK_COUNT; i++)
+        for (int i = 0; i < ROCK_COUNT/2; i++)
         {
             _spriteBatch.Draw(
                 rockTexture,
-                rockPositions[i],
+                rockPositionsRight[i],
+                null,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                ROCK_DRAW_SCALE,
+                SpriteEffects.None,
+                0f
+            );
+        }
+        for (int i = 0; i < ROCK_COUNT/2; i++)
+        {
+            _spriteBatch.Draw(
+                rockTexture,
+                rockPositionsLeft[i],
                 null,
                 Color.White,
                 0f,
@@ -345,11 +432,25 @@ public class MiningScene : Scene, IParticleEmitter
             );
         }
         //draw ores
-        for (int i = 0; i < ORE_COUNT; i++)
+        for (int i = 0; i < ORE_COUNT/2; i++)
         {
             _spriteBatch.Draw(
                 oreTexture,
-                orePositions[i],
+                orePositionsRight[i],
+                null,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                ROCK_DRAW_SCALE,
+                SpriteEffects.None,
+                0f
+            );
+        }
+        for (int i = 0; i < ORE_COUNT/2; i++)
+        {
+            _spriteBatch.Draw(
+                oreTexture,
+                orePositionsLeft[i],
                 null,
                 Color.White,
                 0f,
@@ -377,17 +478,25 @@ public class MiningScene : Scene, IParticleEmitter
 
             _spriteBatch.DrawString(font, "Speed: " + ((int)pickaxe.AngularVelocity).ToString(), new Vector2(vw * 0.42f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
-            foreach (var rockCollision in rockCollisions)
+            foreach (var rockCollision in rockCollisionsRight)
             {
                 Debug.DrawCircleOutline(_spriteBatch, Game.GraphicsDevice, rockCollision.Center, rockCollision.Radius, Color.Blue);
             }
-            foreach (var oreCollision in oreCollisions)
+            foreach (var oreCollision in oreCollisionsRight)
+            {
+                Debug.DrawCircleOutline(_spriteBatch, Game.GraphicsDevice, oreCollision.Center, oreCollision.Radius, Color.Green);
+            }
+            foreach (var rockCollision in rockCollisionsLeft)
+            {
+                Debug.DrawCircleOutline(_spriteBatch, Game.GraphicsDevice, rockCollision.Center, rockCollision.Radius, Color.Blue);
+            }
+            foreach (var oreCollision in oreCollisionsLeft)
             {
                 Debug.DrawCircleOutline(_spriteBatch, Game.GraphicsDevice, oreCollision.Center, oreCollision.Radius, Color.Green);
             }
         }
 
-        if (oreMined == 3)
+        if (oreMined == ORE_COUNT)
         {
             _spriteBatch.DrawString(font, "All ore mined! Well done!", new Vector2(50, 100), Color.Lime, 0f, Vector2.Zero, 1.5f, SpriteEffects.None, 0f);
             _score = 3;

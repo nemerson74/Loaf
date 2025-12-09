@@ -169,11 +169,11 @@ public class OverworldScene : Scene
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Forest)
             {
-                LOAF.ChangeScene(new CarpentryScene(LOAF, scoreTracker));
+                LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Carpentry, scoreTracker));
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Desert)
             {
-                //LOAF.ChangeScene(new CactusScene(LOAF, scoreTracker));
+                //LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Cactus, scoreTracker));
                 Reinitialize();
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Badland)
@@ -182,7 +182,7 @@ public class OverworldScene : Scene
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Grassland)
             {
-                //LOAF.ChangeScene(new WheatScene(LOAF, scoreTracker));
+                //LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Wheat, scoreTracker));
                 Reinitialize();
             }
             else
