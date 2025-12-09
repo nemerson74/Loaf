@@ -30,6 +30,7 @@ public class MiningScene : Scene, IParticleEmitter
     Random random = new Random();
     Vector2 shakeOffset = Vector2.Zero;
     private float _gameScale;
+    private bool gameEndFlag = false;
 
     private float vw;
     private float vh;
@@ -261,73 +262,82 @@ public class MiningScene : Scene, IParticleEmitter
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         if (dt <= 0f) dt = 1f / 60f;
 
+
         pickaxe.Update(gameTime, input);
 
-        //Detect collisions with rocks
-        lastHitTime += dt;
-        if (oreMined < ORE_COUNT && lastHitTime > 0.7f)
+        if (!gameEndFlag)
         {
-            // choose side based on anchor
-            bool rightSide = pickaxe.Anchor.X >= centerX;
-            var rockArray = rightSide ? rockCollisionsRight : rockCollisionsLeft;
-            var rockPosArray = rightSide ? rockPositionsRight : rockPositionsLeft;
-            for (int i = 0; i < rockArray.Length; i++)
+            //Detect collisions with rocks
+            lastHitTime += dt;
+            if (lastHitTime > 0.6f)
             {
-                if (pickaxe.leftBoundingCircle.CollidesWith(rockArray[i]) || pickaxe.rightBoundingCircle.CollidesWith(rockArray[i]))
+                // choose side based on anchor
+                bool rightSide = pickaxe.Anchor.X >= centerX;
+                var rockArray = rightSide ? rockCollisionsRight : rockCollisionsLeft;
+                var rockPosArray = rightSide ? rockPositionsRight : rockPositionsLeft;
+                for (int i = 0; i < rockArray.Length; i++)
                 {
-                    if( Math.Abs(pickaxe.AngularVelocity) > 5f)
+                    if (pickaxe.leftBoundingCircle.CollidesWith(rockArray[i]) || pickaxe.rightBoundingCircle.CollidesWith(rockArray[i]))
                     {
-                        screenShakeflag = true;
-                        pickaxe.PlayHitSound();
-                        pickaxe.Rebound();
-                        //remove rock from scene by moving offscreen
-                        rockArray[i].Center = new Vector2(-1000f, -1000f);
-                        rockPosArray[i] = new Vector2(-1000f, -1000f);
-                        lastHitTime = 0f;
+                        if (Math.Abs(pickaxe.AngularVelocity) > 5f)
+                        {
+                            screenShakeflag = true;
+                            pickaxe.PlayHitSound();
+                            pickaxe.Rebound();
+                            //remove rock from scene by moving offscreen
+                            rockArray[i].Center = new Vector2(-1000f, -1000f);
+                            rockPosArray[i] = new Vector2(-1000f, -1000f);
+                            lastHitTime = 0f;
 
-                    }
-                    else
-                    {
-                        pickaxe.PlayHitSound();
-                        pickaxe.Rebound();
-                        lastHitTime = 0f;
+                        }
+                        else
+                        {
+                            pickaxe.PlayHitSound();
+                            pickaxe.Rebound();
+                            lastHitTime = 0f;
+                        }
                     }
                 }
             }
-        }
-        //Detect collisions with ores
-        if (oreMined < ORE_COUNT && lastHitTime > 0.7f )
-        {
-            bool rightSide = pickaxe.Anchor.X >= centerX;
-            var oreArray = rightSide ? oreCollisionsRight : oreCollisionsLeft;
-            var orePosArray = rightSide ? orePositionsRight : orePositionsLeft;
-            for (int i = 0; i < oreArray.Length; i++)
+            //Detect collisions with ores
+            if (lastHitTime > 0.6f)
             {
-                if (pickaxe.leftBoundingCircle.CollidesWith(oreArray[i]) || pickaxe.rightBoundingCircle.CollidesWith(oreArray[i]))
+                bool rightSide = pickaxe.Anchor.X >= centerX;
+                var oreArray = rightSide ? oreCollisionsRight : oreCollisionsLeft;
+                var orePosArray = rightSide ? orePositionsRight : orePositionsLeft;
+                for (int i = 0; i < oreArray.Length; i++)
                 {
-                    if (Math.Abs(pickaxe.AngularVelocity) > 5f)
+                    if (pickaxe.leftBoundingCircle.CollidesWith(oreArray[i]) || pickaxe.rightBoundingCircle.CollidesWith(oreArray[i]))
                     {
-                        screenShakeflag = true;
-                        pickaxe.PlayHitSound();
-                        pickaxe.Rebound();
-                        oreMined++;
-                        //remove ore from scene by moving offscreen
-                        oreArray[i].Center = new Vector2(-1000f, -1000f);
-                        orePosArray[i] = new Vector2(-1000f, -1000f);
-                        lastHitTime = 0f;
+                        if (Math.Abs(pickaxe.AngularVelocity) > 5f)
+                        {
+                            screenShakeflag = true;
+                            pickaxe.PlayHitSound();
+                            pickaxe.Rebound();
+                            oreMined++;
+                            //remove ore from scene by moving offscreen
+                            oreArray[i].Center = new Vector2(-1000f, -1000f);
+                            orePosArray[i] = new Vector2(-1000f, -1000f);
+                            lastHitTime = 0f;
+
+                        }
+                        else
+                        {
+                            pickaxe.PlayHitSound();
+                            pickaxe.Rebound();
+                            lastHitTime = 0f;
+                        }
 
                     }
-                    else
-                    {
-                        pickaxe.PlayHitSound();
-                        pickaxe.Rebound();
-                        lastHitTime = 0f;
-                    }
-
                 }
             }
-            
+            if (oreMined >= ORE_COUNT)
+            {
+                _score = _scoreTimer.ReturnScore();
+                gameEndFlag = true;
+            }
         }
+
 
 
         //turn off emitter depending on speed
@@ -392,6 +402,7 @@ public class MiningScene : Scene, IParticleEmitter
             LOAF.ChangeScene(new TitleScene(LOAF));
             return;
         }
+        _scoreTimer.Update(gameTime);
     }
 
     public override void Draw(GameTime gameTime)
@@ -402,6 +413,7 @@ public class MiningScene : Scene, IParticleEmitter
         _spriteBatch.Begin(transformMatrix: viewMatrix, samplerState: SamplerState.PointClamp);
 
         pickaxe.Draw(gameTime, _spriteBatch);
+        _scoreTimer.Draw(_spriteBatch);
         //draw rocks
         for (int i = 0; i < ROCK_COUNT/2; i++)
         {
@@ -496,10 +508,12 @@ public class MiningScene : Scene, IParticleEmitter
             }
         }
 
-        if (oreMined == ORE_COUNT)
+        if (gameEndFlag)
         {
-            _spriteBatch.DrawString(font, "All ore mined! Well done!", new Vector2(50, 100), Color.Lime, 0f, Vector2.Zero, 1.5f, SpriteEffects.None, 0f);
-            _score = 3;
+            string doneString = "All ore mined! Well done!";
+            Vector2 lineSize = font.MeasureString(doneString);
+            Vector2 linePos = new Vector2(centerX - lineSize.X / 2f, vh / 2f);
+            _spriteBatch.DrawString(font, doneString, linePos, Color.Yellow, 0f, Vector2.Zero, 1.5f, SpriteEffects.None, 0f);
         }
 
         _spriteBatch.End();

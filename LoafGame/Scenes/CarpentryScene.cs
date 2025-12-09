@@ -679,7 +679,6 @@ public class CarpentryScene : Scene, IParticleEmitter
             Vector2 lineSize = font.MeasureString(doneString);
             Vector2 linePos = new Vector2(centerX - lineSize.X / 2f, vh/2f);
             _spriteBatch.DrawString(font, doneString, linePos, Color.Yellow, 0f, Vector2.Zero, 1.5f, SpriteEffects.None, 0f);
-            _score = 3;
         }
 
         if (debugFlag)
