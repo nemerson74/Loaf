@@ -12,8 +12,7 @@ public class MinigameSelectorScene : Scene
 {
     private SpriteBatch _spriteBatch;
     private Button newGameButton;
-    private Button carpentryButton;
-    private Button miningButton;
+    private Button carpentryButton, miningButton, cactusButton, wheatButton;
     private BoundingPoint cursor;
 
     private float vw;
@@ -36,10 +35,14 @@ public class MinigameSelectorScene : Scene
 
         float buttonRowY = vh * 0.5f;
         float buttonSpacing = vw * 0.15f;
+        float buttonSpacingVertical = vh * 0.2f;
+
 
         newGameButton = new Button() { Position = new Vector2(centerX, buttonRowY - buttonSpacing), Text = "New" };
-        carpentryButton = new Button() { Position = new Vector2(centerX - buttonSpacing, buttonRowY + buttonSpacing), Text = "Carpentry" };
-        miningButton = new Button() { Position = new Vector2(centerX + buttonSpacing, buttonRowY + buttonSpacing), Text = "Mining" };
+        carpentryButton = new Button() { Position = new Vector2(centerX - buttonSpacing, buttonRowY + buttonSpacing - buttonSpacingVertical), Text = "Carpentry" };
+        miningButton = new Button() { Position = new Vector2(centerX + buttonSpacing, buttonRowY + buttonSpacing - buttonSpacingVertical), Text = "Mining" };
+        cactusButton = new Button() { Position = new Vector2(centerX - buttonSpacing, buttonRowY + buttonSpacing), Text = "Cactus" };
+        wheatButton = new Button() { Position = new Vector2(centerX + buttonSpacing, buttonRowY + buttonSpacing), Text = "Wheat" };
         base.Initialize();
     }
 
@@ -49,6 +52,8 @@ public class MinigameSelectorScene : Scene
         newGameButton.LoadContent(Content);
         carpentryButton.LoadContent(Content);
         miningButton.LoadContent(Content);
+        cactusButton.LoadContent(Content);
+        wheatButton.LoadContent(Content);
         backFont = Content.Load<SpriteFont>("vergilia");
         tutorialFont = Content.Load<SpriteFont>("tutorialFont");
     }
@@ -63,6 +68,8 @@ public class MinigameSelectorScene : Scene
         newGameButton.Update(cursor.CollidesWith(newGameButton.Bounds));
         carpentryButton.Update(cursor.CollidesWith(carpentryButton.Bounds));
         miningButton.Update(cursor.CollidesWith(miningButton.Bounds));
+        cactusButton.Update(cursor.CollidesWith(cactusButton.Bounds));
+        wheatButton.Update(cursor.CollidesWith(wheatButton.Bounds));
 
         // Right click to return
         if (input.PreviousRightMouseState == ButtonState.Released && input.CurrentRightMouseState == ButtonState.Pressed)
@@ -88,12 +95,22 @@ public class MinigameSelectorScene : Scene
             if (carpentryButton.Hover)
             {
                 carpentryButton.PlayClickSound();
-                LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Carpentry));
+                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Carpentry));
             }
             if (miningButton.Hover)
             {
                 miningButton.PlayClickSound();
-                LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Mining));
+                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Mining));
+            }
+            if (cactusButton.Hover)
+            {
+                cactusButton.PlayClickSound();
+                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Cactus));
+            }
+            if (wheatButton.Hover)
+            {
+                wheatButton.PlayClickSound();
+                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Wheat));
             }
         }
     }
@@ -107,6 +124,8 @@ public class MinigameSelectorScene : Scene
         newGameButton.Draw(_spriteBatch);
         carpentryButton.Draw(_spriteBatch);
         miningButton.Draw(_spriteBatch);
+        cactusButton.Draw(_spriteBatch);
+        wheatButton.Draw(_spriteBatch);
         SpriteFont font = Content.Load<SpriteFont>("vergilia");
         float fontScale = 1f;
 
@@ -119,10 +138,9 @@ public class MinigameSelectorScene : Scene
 
         string minigameText = "Minigame Selector";
         Vector2 minigameTextSize = font.MeasureString(minigameText);
-        Vector2 minigameTextPos = new Vector2(centerX - minigameTextSize.X / 2f, vh * 0.6f);
+        Vector2 minigameTextPos = new Vector2(centerX - minigameTextSize.X / 2f, vh * 0.4f);
         _spriteBatch.DrawString(font, minigameText, minigameTextPos, Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
         _spriteBatch.End();
     }
 }
-

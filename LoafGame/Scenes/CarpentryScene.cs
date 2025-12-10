@@ -739,7 +739,7 @@ public class CarpentryScene : Scene, IParticleEmitter
             screenShakeFlag = true;
         }
     }
-
+    
     private void NailBadHit()
     {
         lastNailHitTime = 0f;

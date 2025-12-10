@@ -39,14 +39,14 @@ namespace LoafGame.Scenes
             Wheat
         }
 
-        private TutorialType CurrentTutorialType;
+        private Enums.GameType CurrentTutorialType;
         ScoreTracker scoreTracker;
 
-        public TutorialScene(Game game, TutorialType tutorialType, ScoreTracker scoreTracker = null) : base(game)
+        public TutorialScene(Game game, Enums.GameType tutorialType, ScoreTracker scoreTracker = null) : base(game)
         {
             CurrentTutorialType = tutorialType;
             this.scoreTracker = scoreTracker;
-            tutorialText = TutorialText.GetText(tutorialType);
+            tutorialText = TutorialText.GetText(CurrentTutorialType);
         }
 
         public override void Initialize()
@@ -59,10 +59,10 @@ namespace LoafGame.Scenes
 
             float[] limits = CurrentTutorialType switch
             {
-                TutorialType.Carpentry => Enums.CARPENTRY_LIMITS,
-                TutorialType.Mining => Enums.MINING_LIMITS,
-                TutorialType.Cactus => Enums.CACTUS_LIMITS,
-                TutorialType.Wheat => Enums.WHEAT_LIMITS,
+                Enums.GameType.Carpentry => Enums.CARPENTRY_LIMITS,
+                Enums.GameType.Mining => Enums.MINING_LIMITS,
+                Enums.GameType.Cactus => Enums.CACTUS_LIMITS,
+                Enums.GameType.Wheat => Enums.WHEAT_LIMITS,
                 _ => Enums.CARPENTRY_LIMITS
             };
 
@@ -105,21 +105,21 @@ namespace LoafGame.Scenes
 
             if (barFilled)
             {
-                if (CurrentTutorialType == TutorialType.Carpentry)
+                if (CurrentTutorialType == Enums.GameType.Carpentry)
                 {
                     LOAF.ChangeScene(new CarpentryScene(LOAF, scoreTracker));
                 }
-                if (CurrentTutorialType == TutorialType.Mining)
+                if (CurrentTutorialType == Enums.GameType.Mining)
                 {
                     LOAF.ChangeScene(new MiningScene(LOAF, scoreTracker));
                 }
-                if (CurrentTutorialType == TutorialType.Cactus)
+                if (CurrentTutorialType == Enums.GameType.Cactus)
                 {
                     //LOAF.ChangeScene(new CactusScene(LOAF, scoreTracker));
                 }
-                if (CurrentTutorialType == TutorialType.Wheat)
+                if (CurrentTutorialType == Enums.GameType.Wheat)
                 {
-                    //LOAF.ChangeScene(new WheatScene(LOAF, scoreTracker));
+                    LOAF.ChangeScene(new WheatScene(LOAF, scoreTracker));
                 }
             }
         }

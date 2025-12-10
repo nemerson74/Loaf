@@ -169,21 +169,19 @@ public class OverworldScene : Scene
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Forest)
             {
-                LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Carpentry, scoreTracker));
+                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Carpentry, scoreTracker));
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Desert)
             {
-                //LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Cactus, scoreTracker));
-                Reinitialize();
+                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Cactus, scoreTracker));
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Badland)
             {
-                LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Mining, scoreTracker));
+                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Mining, scoreTracker));
             }
             else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Grassland)
             {
-                //LOAF.ChangeScene(new TutorialScene(LOAF, TutorialScene.TutorialType.Wheat, scoreTracker));
-                Reinitialize();
+                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Wheat, scoreTracker));
             }
             else
             {
@@ -252,7 +250,7 @@ public class OverworldScene : Scene
 
         if (tutorialFlag)
         {
-            string titleText = "Go to a forest and build a lumbermill";
+            string titleText = "Build on at least 1 of each terrain";
             Vector2 titleSize = _font.MeasureString(titleText);
             Vector2 titlePos = new Vector2(centerX - titleSize.X / 4f, vh * 0.5f);
             _spriteBatch.DrawString(_font, titleText, titlePos, Color.Yellow, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0f);

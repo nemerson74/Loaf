@@ -86,12 +86,6 @@
 /processorParam:TextureFormat=Color
 /build:Button.png
 
-#begin example.tmap
-/importer:BasicTilemapImporter
-/processor:HexTilemapProcessor
-/processorParam:Scale=0.5
-/build:example.tmap
-
 #begin fireballnormalgabe.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -347,6 +341,42 @@
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
 /build:vergilia.spritefont
+
+#begin Wheat/brush.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Wheat/brush.png
+
+#begin Wheat/scythe.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Wheat/scythe.png
+
+#begin Wheat/wheatfield.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Wheat/wheatfield.png
 
 #begin wood.png
 /importer:TextureImporter

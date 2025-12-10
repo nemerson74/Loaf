@@ -63,8 +63,6 @@ public class MiningScene : Scene, IParticleEmitter
     private const int ORE_COUNT = 6;
     private const float ROCK_DRAW_SCALE = 5f;
 
-    // two head circles for hammer
-
     // revolution tracking
     private FireballParticleSystem fireballred;
     private FireballParticleSystem fireballs;

@@ -144,6 +144,23 @@ namespace LoafGame
         /// The name of the tool hit sound to load.
         /// </summary>
         public string ToolHitSoundString { get; set; } = "39_Block_03";
+
+        public void SetAngle(float radians)
+        {
+            angle = radians;
+            prevAngle = radians;
+        }
+
+        public void SetToolFrame(int frame)
+        {
+            toolFrame = frame;
+            manualControl = true;
+        }
+
+        /// <summary>
+        /// The name of the tool hit sound to load.
+        /// </summary>
+        public bool HasTwoBoundingCircles { get; set; } = false;
         #endregion
         #region private variables
         private float angle = 0.5f;
@@ -162,6 +179,7 @@ namespace LoafGame
         private int toolFrame = 0;
         public BoundingCircle leftBoundingCircle;
         public BoundingCircle rightBoundingCircle;
+        bool manualControl = false;
         #endregion
 
         public Rotator() {}
@@ -170,7 +188,8 @@ namespace LoafGame
             prevAngle = angle;
             this.gameScale = gameScale;
             leftBoundingCircle = new BoundingCircle(Vector2.Zero, CollisionRadius * Scale);
-            rightBoundingCircle = new BoundingCircle(Vector2.Zero, CollisionRadius * Scale);
+            if (HasTwoBoundingCircles)
+                rightBoundingCircle = new BoundingCircle(Vector2.Zero, CollisionRadius * Scale);
         }
 
         public void LoadContent(ContentManager content, float gameScale)
@@ -190,13 +209,16 @@ namespace LoafGame
             float drawRotation = angle - MathF.PI;
             // compute local offsets from the cursor origin, rotated, then scaled by sprite Scale
             Vector2 leftLocal = Rotate(LeftCollisionOrigin - CursorOrigin, drawRotation) * Scale;
-            Vector2 rightLocal = Rotate(RightCollisionOrigin - CursorOrigin, drawRotation) * Scale;
             // place circles at sprite position plus local offsets
             leftBoundingCircle.Center = anchor + leftLocal;
-            rightBoundingCircle.Center = anchor + rightLocal;
             // set radii
             leftBoundingCircle.Radius = CollisionRadius;
-            rightBoundingCircle.Radius = CollisionRadius;
+            if (!HasTwoBoundingCircles)
+            {
+                Vector2 rightLocal = Rotate(RightCollisionOrigin - CursorOrigin, drawRotation) * Scale;
+                rightBoundingCircle.Center = anchor + rightLocal;
+                rightBoundingCircle.Radius = CollisionRadius;
+            }
 
             //delta time
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -260,45 +282,48 @@ namespace LoafGame
             }
             prevAngle = angle;
 
-            // update hammer frame/max velocity based on revolutions
-            if (revolutionsCW >= 6)
+            if (!manualControl)
             {
-                currentMaxVelocity = MaxVelocities[2];
-                //Velocity = headCircleLeft.Center - Position;
-                //Position = headCircleLeft.Center * LOAF.GameScale;
-                toolFrame = 2;
-            }
-            else if (revolutionsCW >= 3)
-            {
-                currentMaxVelocity = MaxVelocities[1];
-                //Velocity = headCircleLeft.Center - Position;
-                //Position = headCircleLeft.Center * LOAF.GameScale;
-                toolFrame = 1;
-            }
-            else
-            {
-                if (revolutionsCCW == 0) currentMaxVelocity = MaxVelocities[0];
-                if (revolutionsCCW == 0) toolFrame = 0;
-            }
+                // update hammer frame/max velocity based on revolutions
+                if (revolutionsCW >= 6)
+                {
+                    currentMaxVelocity = MaxVelocities[2];
+                    //Velocity = headCircleLeft.Center - Position;
+                    //Position = headCircleLeft.Center * LOAF.GameScale;
+                    toolFrame = 2;
+                }
+                else if (revolutionsCW >= 3)
+                {
+                    currentMaxVelocity = MaxVelocities[1];
+                    //Velocity = headCircleLeft.Center - Position;
+                    //Position = headCircleLeft.Center * LOAF.GameScale;
+                    toolFrame = 1;
+                }
+                else
+                {
+                    if (revolutionsCCW == 0) currentMaxVelocity = MaxVelocities[0];
+                    if (revolutionsCCW == 0) toolFrame = 0;
+                }
 
-            if (revolutionsCCW >= 6)
-            {
-                currentMaxVelocity = MaxVelocities[2];
-                //Velocity = headCircleRight.Center - Position;
-                //Position = headCircleRight.Center * LOAF.GameScale;
-                toolFrame = 5;
-            }
-            else if (revolutionsCCW >= 3)
-            {
-                currentMaxVelocity = MaxVelocities[1];
-                //Velocity = headCircleRight.Center - Position;
-                //Position = headCircleRight.Center * LOAF.GameScale;
-                toolFrame = 4;
-            }
-            else
-            {
-                if (revolutionsCW == 0) currentMaxVelocity = MaxVelocities[0];
-                if (revolutionsCW == 0) toolFrame = 3;
+                if (revolutionsCCW >= 6)
+                {
+                    currentMaxVelocity = MaxVelocities[2];
+                    //Velocity = headCircleRight.Center - Position;
+                    //Position = headCircleRight.Center * LOAF.GameScale;
+                    toolFrame = 5;
+                }
+                else if (revolutionsCCW >= 3)
+                {
+                    currentMaxVelocity = MaxVelocities[1];
+                    //Velocity = headCircleRight.Center - Position;
+                    //Position = headCircleRight.Center * LOAF.GameScale;
+                    toolFrame = 4;
+                }
+                else
+                {
+                    if (revolutionsCW == 0) currentMaxVelocity = MaxVelocities[0];
+                    if (revolutionsCW == 0) toolFrame = 3;
+                }
             }
 
             // damping
@@ -368,6 +393,11 @@ namespace LoafGame
         public void PlayHitSound()
         {
             toolHit.Play(1f, 0f, 0f);
+        }
+
+        public void PlayWhooshSound(float x, float y, float z)
+        {
+            toolWhoosh.Play(x, y, z);
         }
 
         public void Rebound()
