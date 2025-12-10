@@ -115,7 +115,7 @@ namespace LoafGame.Scenes
                 }
                 if (CurrentTutorialType == Enums.GameType.Cactus)
                 {
-                    //LOAF.ChangeScene(new CactusScene(LOAF, scoreTracker));
+                    LOAF.ChangeScene(new CactusScene(LOAF, scoreTracker));
                 }
                 if (CurrentTutorialType == Enums.GameType.Wheat)
                 {

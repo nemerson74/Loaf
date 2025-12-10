@@ -118,8 +118,10 @@ public class WheatScene : Scene, IParticleEmitter
 
         BuildWheatRegions();
 
+        scythe.CursorOrigin = new Vector2(1f, 10f);
         scythe.SetAngle(SCYTHE_POSITION_1);
-        scythe.SetToolFrame(1);
+        scythe.SetToolFrame(3);
+        scythe.Color = Color.Red;
         prevPosition = 1;
 
         _overlayPixel = new Texture2D(Game.GraphicsDevice, 1, 1);
@@ -280,6 +282,7 @@ public class WheatScene : Scene, IParticleEmitter
                     scythe.CursorOrigin = new Vector2(14f, 10f);
                     scythe.SetAngle(SCYTHE_POSITION_2);
                     scythe.SetToolFrame(0);
+                    scythe.Color = Color.Green;
                     scythe.PlayWhooshSound(1f, 1f, .8f);
                     prevPosition = 2;
                 }
@@ -288,6 +291,7 @@ public class WheatScene : Scene, IParticleEmitter
                     scythe.CursorOrigin = new Vector2(1f, 10f);
                     scythe.SetAngle(SCYTHE_POSITION_1);
                     scythe.SetToolFrame(3);
+                    scythe.Color = Color.Red;
                     scythe.PlayWhooshSound(1f, 1f, -.8f);
                     prevPosition = 1;
                 }

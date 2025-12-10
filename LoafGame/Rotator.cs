@@ -53,6 +53,10 @@ namespace LoafGame
             {
                 return anchor;
             }
+            set
+            {
+                anchor = value;
+            }
         }
 
         /// <summary>
@@ -136,6 +140,11 @@ namespace LoafGame
         public string TextureName { get; set; } = "hammer";
 
         /// <summary>
+        /// The name of the texture to load.
+        /// </summary>
+        public Color Color { get; set; } = Color.White;
+
+        /// <summary>
         /// The name of the tool whoose sound to load.
         /// </summary>
         public string ToolWhooshSoundString { get; set; } = "35_Miss_Evade_02";
@@ -144,6 +153,21 @@ namespace LoafGame
         /// The name of the tool hit sound to load.
         /// </summary>
         public string ToolHitSoundString { get; set; } = "39_Block_03";
+
+        /// <summary>
+        /// Multiple frames for different speed stages.
+        /// </summary>
+        public bool MultiFrame { get; set; } = true;
+
+        /// <summary>
+        /// Play whoosh sound on fast swings.
+        /// </summary>
+        public bool Whoosh { get; set; } = true;
+
+        /// <summary>
+        /// Can the rotator move?
+        /// </summary>
+        public bool Fixed { get; set; } = false;
 
         public void SetAngle(float radians)
         {
@@ -160,7 +184,7 @@ namespace LoafGame
         /// <summary>
         /// The name of the tool hit sound to load.
         /// </summary>
-        public bool HasTwoBoundingCircles { get; set; } = false;
+        public bool HasTwoBoundingCircles { get; set; } = true;
         #endregion
         #region private variables
         private float angle = 0.5f;
@@ -203,7 +227,8 @@ namespace LoafGame
         public void Update(GameTime gameTime, InputManager input)
         {
             //follow the mouse (in world units; input.Position is in screen units)
-            anchor = input.Position / gameScale;
+            if (Fixed == false)
+                anchor = input.Position / gameScale;
 
             // update head circle centers to follow the rotated/scaled sprite
             float drawRotation = angle - MathF.PI;
@@ -213,7 +238,7 @@ namespace LoafGame
             leftBoundingCircle.Center = anchor + leftLocal;
             // set radii
             leftBoundingCircle.Radius = CollisionRadius;
-            if (!HasTwoBoundingCircles)
+            if (HasTwoBoundingCircles)
             {
                 Vector2 rightLocal = Rotate(RightCollisionOrigin - CursorOrigin, drawRotation) * Scale;
                 rightBoundingCircle.Center = anchor + rightLocal;
@@ -262,7 +287,7 @@ namespace LoafGame
                     accumulatedCCW -= MathF.PI * 2f;
                     revolutionsCCW = Math.Min(revolutionsCCW, 12);
                     revolutionsCW = 0;
-                    if (Math.Abs(AngularVelocity) > currentMaxVelocity * 0.7f)
+                    if (Math.Abs(AngularVelocity) > currentMaxVelocity * 0.7f && Whoosh)
                         toolWhoosh.Play(1f, Math.Max(1f - Math.Abs(AngularVelocity), 0.5f), 0f);
                 }
             }
@@ -276,7 +301,7 @@ namespace LoafGame
                     accumulatedCW -= MathF.PI * 2f;
                     revolutionsCW = Math.Min(revolutionsCW, 12);
                     revolutionsCCW = 0;
-                    if (Math.Abs(AngularVelocity) > currentMaxVelocity * 0.7f)
+                    if (Math.Abs(AngularVelocity) > currentMaxVelocity * 0.7f && Whoosh)
                         toolWhoosh.Play(1f, Math.Max(1f - Math.Abs(AngularVelocity) / 12, 0.5f), 0f);
                 }
             }
@@ -355,7 +380,12 @@ namespace LoafGame
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             Rectangle sourceRect = new Rectangle(0, 0, FrameWidth, FrameHeight);
-            switch (toolFrame)
+            if (!MultiFrame)
+            {
+                sourceRect = new Rectangle(0, 0, FrameWidth, FrameHeight);
+            }
+            else
+                switch (toolFrame)
             {
                 case 0:
                     sourceRect = new Rectangle(0, 0, FrameWidth, FrameHeight);
@@ -381,7 +411,7 @@ namespace LoafGame
                 toolTexture,
                 anchor,
                 sourceRect,
-                Color.White,
+                Color,
                 angle - MathF.PI,
                 CursorOrigin,
                 Scale,
