@@ -55,17 +55,43 @@ namespace LoafGame
         /// </summary>
         private Vector2[] Centers { get; set; }
 
+        private Texture2D roadTexture;
+
+        private Texture2D middleTexture;
+
         // Index in the map array (y * MapWidth + x) of the currently highlighted tile, or -1 if none
         private int highlightedTile = 0;
+
+        private static readonly Vector2[] ROAD_POSITIONS = new Vector2[]
+        {
+            new Vector2(-8f, -14f),
+            new Vector2(8f, -14f),
+            new Vector2(20f, 0f),
+            new Vector2(8f, 14f),
+            new Vector2(-8f, 14f),
+            new Vector2(-20f, 0f)
+        };
+
+        private static readonly float[] ROAD_ANGLES = new float[]
+        {
+            240f,
+            300f,
+            0f,
+            60f,
+            120f,
+            180f
+        };
 
         /// <summary>
         /// Initializes the hexagonal tiles for the map.
         /// </summary>
-        public void InitializeHexTiles(float horizontalOffset, float verticalOffset, int startingTile)
+        public void InitializeHexTiles(float horizontalOffset, float verticalOffset, int startingTile, Texture2D roadTexture, Texture2D middleTexture)
         {
             highlightedTile = startingTile;
             hexTiles = new HexTile[MapWidth * MapHeight];
             Centers = new Vector2[MapWidth * MapHeight];
+            this.roadTexture = roadTexture;
+            this.middleTexture = middleTexture;
 
             float horizontalSpacing = TileWidth * 0.5f;
             float sideLength = TileHeight / 2f;
@@ -245,19 +271,75 @@ namespace LoafGame
                             }
                         }
                     }
-                        //Color tint = (mapCellIndex == highlightedTile) ? Color.LightGreen : Color.White;
-
+                    //Color tint = (mapCellIndex == highlightedTile) ? Color.LightGreen : Color.White;
+                    if (!hexTiles[mapCellIndex].HasBuilding)
+                    {
                         spriteBatch.Draw(
-                            TilesetTexture,
-                            new Rectangle(
-                                (int)posX,
-                                (int)posY,
-                                TileWidth,
-                                TileHeight
-                                ),
-                            Tiles[index],
-                            tint
-                            );
+                        TilesetTexture,
+                        new Rectangle(
+                            (int)posX,
+                            (int)posY,
+                            TileWidth,
+                            TileHeight
+                            ),
+                        Tiles[index],
+                        tint,
+                        0f,
+                        Vector2.Zero,
+                        SpriteEffects.None,
+                        0f
+                        );
+                        if (hexTiles[mapCellIndex].HasRoad)
+                        {
+                            for (int i = 0; i < 6; i++)
+                            {
+                                int neighborIndex = hexTiles[mapCellIndex].SurroundingTilesIndices[i];
+                                if (neighborIndex >= 0 && hexTiles[neighborIndex].HasRoad)
+                                {
+                                    spriteBatch.Draw(
+                                        roadTexture,
+                                        new Vector2(posX + TileWidth / 2f, posY + TileHeight / 2f) + ROAD_POSITIONS[i],
+                                        null,
+                                        Color.White,
+                                        MathHelper.ToRadians(ROAD_ANGLES[i]),
+                                        new Vector2(roadTexture.Width / 2f, roadTexture.Height / 2f),
+                                        0.5f,
+                                        SpriteEffects.None,
+                                        0f
+                                        );
+                                }
+                            }
+                            spriteBatch.Draw(
+                                middleTexture,
+                                new Vector2(posX + TileWidth / 2f, posY + TileHeight / 2f),
+                                null,
+                                Color.White,
+                                0f,
+                                new Vector2(middleTexture.Width / 2f, middleTexture.Height / 2f),
+                                0.5f,
+                                SpriteEffects.None,
+                                0f
+                                );
+                        }
+                    }
+                    if (hexTiles[mapCellIndex].HasBuilding)
+                    {
+                        spriteBatch.Draw(
+                        TilesetTexture,
+                        new Rectangle(
+                            (int)posX,
+                            (int)posY,
+                            TileWidth,
+                            TileHeight
+                            ),
+                        Tiles[index],
+                        tint,
+                        0f,
+                        Vector2.Zero,
+                        SpriteEffects.None,
+                        0f
+                        );
+                    }
                 }
             }
         }
@@ -299,38 +381,109 @@ namespace LoafGame
             return true;
         }
 
+        /// <summary>
+        /// Build a building on the specified tile index.
+        /// </summary>
+        /// <param name="index">The specified tile index.</param>
         public void BuildTile(int index)
         {
             if (index == -1) return;
             if (hexTiles[index].HasBuilding) return;
             Enums.TileType terrain = GetTileTerrain(index);
-            if (terrain == Enums.TileType.Forest)
+            if (HasRoad(index))
             {
-                TileIndices[index] = 13;
-                hexTiles[index].TileIndex = 13;
+                if (terrain == Enums.TileType.Forest)
+                {
+                    TileIndices[index] = 19;
+                    hexTiles[index].TileIndex = 19;
+                }
+                else if (terrain == Enums.TileType.Desert)
+                {
+                    TileIndices[index] = 22;
+                    hexTiles[index].TileIndex = 22;
+                }
+                else if (terrain == Enums.TileType.Badland)
+                {
+                    TileIndices[index] = 21;
+                    hexTiles[index].TileIndex = 21;
+                }
+                else if (terrain == Enums.TileType.Grassland)
+                {
+                    TileIndices[index] = 20;
+                    hexTiles[index].TileIndex = 20;
+                }
             }
-            else if (terrain == Enums.TileType.Desert)
+            else
             {
-                TileIndices[index] = 16;
-                hexTiles[index].TileIndex = 16;
-            }
-            else if (terrain == Enums.TileType.Badland)
-            {
-                TileIndices[index] = 15;
-                hexTiles[index].TileIndex = 15;
-            }
-            else if (terrain == Enums.TileType.Grassland)
-            {
-                TileIndices[index] = 14;
-                hexTiles[index].TileIndex = 14;
+                if (terrain == Enums.TileType.Forest)
+                {
+                    TileIndices[index] = 13;
+                    hexTiles[index].TileIndex = 13;
+                }
+                else if (terrain == Enums.TileType.Desert)
+                {
+                    TileIndices[index] = 16;
+                    hexTiles[index].TileIndex = 16;
+                }
+                else if (terrain == Enums.TileType.Badland)
+                {
+                    TileIndices[index] = 15;
+                    hexTiles[index].TileIndex = 15;
+                }
+                else if (terrain == Enums.TileType.Grassland)
+                {
+                    TileIndices[index] = 14;
+                    hexTiles[index].TileIndex = 14;
+                }
             }
             hexTiles[index].HasBuilding = true;
+        }
+
+        /// <summary>
+        /// Build a road on the specified tile index.
+        /// </summary>
+        /// <param name="index">The specified tile index.</param>
+        public void BuildRoad(int index)
+        {
+            if (index == -1) return;
+            if (hexTiles[index].HasRoad) return;
+            Enums.TileType terrain = GetTileTerrain(index);
+            if (HasBuilding(index))
+            {
+                if (terrain == Enums.TileType.Forest)
+                {
+                    TileIndices[index] = 19;
+                    hexTiles[index].TileIndex = 19;
+                }
+                else if (terrain == Enums.TileType.Desert)
+                {
+                    TileIndices[index] = 22;
+                    hexTiles[index].TileIndex = 22;
+                }
+                else if (terrain == Enums.TileType.Badland)
+                {
+                    TileIndices[index] = 21;
+                    hexTiles[index].TileIndex = 21;
+                }
+                else if (terrain == Enums.TileType.Grassland)
+                {
+                    TileIndices[index] = 20;
+                    hexTiles[index].TileIndex = 20;
+                }
+            }
+            hexTiles[index].HasRoad = true;
         }
 
         public bool HasBuilding(int index)
         {
             if (index == -1) return false;
             return hexTiles[index].HasBuilding;
+        }
+
+        public bool HasRoad(int index)
+        {
+            if (index == -1) return false;
+            return hexTiles[index].HasRoad;
         }
 
         public Enums.TileType GetTileTerrain(int index)
@@ -376,7 +529,7 @@ namespace LoafGame
             return highlightedTile;
         }
 
-        public SaveData GiveHexState()
+        public SaveData GiveHexState(ScoreTracker scoreTracker)
         {
             SaveData saveData = new SaveData();
             saveData.s_Terrain = new Enums.TileType[hexTiles.Length];
@@ -409,10 +562,11 @@ namespace LoafGame
                 saveData.s_HasRoad[i] = hexTiles[i].HasRoad;
 
             }
+            saveData.s_scores = scoreTracker.GetScores();
             return saveData;
         }
 
-        public void TakeHexState(SaveData data)
+        public void TakeHexState(SaveData data, out ScoreTracker scoreTracker)
         {
             for (int i = 0; i < hexTiles.Length; i++)
             {
@@ -438,6 +592,63 @@ namespace LoafGame
                     highlightedTile = i;
                 }
             }
+            scoreTracker = new ScoreTracker();
+            scoreTracker.TakeScores(data.s_scores);
+        }
+
+        public bool HasRoadPathWithAllBuildingTypes(out int roadCount)
+        {
+            roadCount = 0;
+            if (hexTiles == null || hexTiles.Length == 0) return false;
+
+            var required = new HashSet<int> { 19, 20, 21, 22 };
+            var visited = new bool[hexTiles.Length];
+
+            for (int i = 0; i < hexTiles.Length; i++)
+            {
+                if (!hexTiles[i].HasRoad || visited[i])
+                    continue;
+
+                var queue = new Queue<int>();
+                queue.Enqueue(i);
+                visited[i] = true;
+
+                var found = new HashSet<int>();
+                int componentCount = 0;
+
+                while (queue.Count > 0)
+                {
+                    int current = queue.Dequeue();
+                    componentCount++;
+
+                    if (hexTiles[current].HasBuilding)
+                    {
+                        int idx = TileIndices[current];
+                        if (required.Contains(idx))
+                        {
+                            found.Add(idx);
+                            if (found.Count == required.Count)
+                            {
+                                roadCount = componentCount;
+                                return true;
+                            }
+                        }
+                    }
+
+                    var neighbors = hexTiles[current].SurroundingTilesIndices;
+                    for (int n = 0; n < neighbors.Length; n++)
+                    {
+                        int neighbor = neighbors[n];
+                        if (neighbor >= 0 && !visited[neighbor] && hexTiles[neighbor].HasRoad)
+                        {
+                            visited[neighbor] = true;
+                            queue.Enqueue(neighbor);
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
     }
 

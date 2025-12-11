@@ -90,7 +90,7 @@ public class MinigameSelectorScene : Scene
             if (newGameButton.Hover)
             {
                 newGameButton.PlayClickSound();
-                LOAF.ChangeScene(new OverworldScene(LOAF));
+                LOAF.ChangeScene(new OverworldTutorialScene(LOAF));
             }
             if (carpentryButton.Hover)
             {

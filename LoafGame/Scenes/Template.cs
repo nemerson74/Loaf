@@ -43,7 +43,6 @@ public class TemplateScene : Scene, IParticleEmitter
 
     private Rotator pickaxe = new Rotator(){ TextureName = "Mining/pickaxe" };
 
-    private int oreMined = 0;
     private Vector2[] rockPositions;
     private Vector2[] orePositions;
 

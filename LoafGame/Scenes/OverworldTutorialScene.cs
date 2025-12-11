@@ -9,7 +9,7 @@ using static LoafGame.Enums;
 
 namespace LoafGame.Scenes
 {
-    public class TutorialScene : Scene
+    public class OverworldTutorialScene : Scene
     {
         private SpriteBatch _spriteBatch;
         private Texture2D _pixel;
@@ -24,22 +24,25 @@ namespace LoafGame.Scenes
         private const float barFillTime = 2.0f; // seconds
         private float barFillProgress = 0.0f;
 
-        string[] tutorialText;
-
-        string limitsString;
-
+        string[] tutorialText = new string[]
+        {
+            "Welcome to LOAF!",
+            "Move around the map by clicking on adjacent tiles",
+            "Build a building on one of each of the four terrains",
+            "Build roads in and between all buildings to win"
+        };
         SpriteFont continueFont;
         SpriteFont tutorialFont;
 
-        private Enums.GameType CurrentTutorialType;
-        ScoreTracker scoreTracker;
-
-        public TutorialScene(Game game, Enums.GameType tutorialType, ScoreTracker scoreTracker = null) : base(game)
+        public enum TutorialType
         {
-            CurrentTutorialType = tutorialType;
-            this.scoreTracker = scoreTracker;
-            tutorialText = TutorialText.GetText(CurrentTutorialType);
+            Carpentry,
+            Mining,
+            Cactus,
+            Wheat
         }
+
+        public OverworldTutorialScene(Game game) : base(game) { }
 
         public override void Initialize()
         {
@@ -48,17 +51,6 @@ namespace LoafGame.Scenes
             vh = Game.GraphicsDevice.Viewport.Height / LOAF.GameScale;
             leftMargin = vw * 0.02f;
             centerX = vw / 2;
-
-            float[] limits = CurrentTutorialType switch
-            {
-                Enums.GameType.Carpentry => Enums.CARPENTRY_LIMITS,
-                Enums.GameType.Mining => Enums.MINING_LIMITS,
-                Enums.GameType.Cactus => Enums.CACTUS_LIMITS,
-                Enums.GameType.Wheat => Enums.WHEAT_LIMITS,
-                _ => Enums.CARPENTRY_LIMITS
-            };
-
-            limitsString = $"3={limits[0]}s, 2={limits[1]}s, 1={limits[2]}s";
 
             float buttonRowY = vh * 0.5f;
             float buttonSpacing = vw * 0.15f;
@@ -97,22 +89,7 @@ namespace LoafGame.Scenes
 
             if (barFilled)
             {
-                if (CurrentTutorialType == Enums.GameType.Carpentry)
-                {
-                    LOAF.ChangeScene(new CarpentryScene(LOAF, scoreTracker));
-                }
-                if (CurrentTutorialType == Enums.GameType.Mining)
-                {
-                    LOAF.ChangeScene(new MiningScene(LOAF, scoreTracker));
-                }
-                if (CurrentTutorialType == Enums.GameType.Cactus)
-                {
-                    LOAF.ChangeScene(new CactusScene(LOAF, scoreTracker));
-                }
-                if (CurrentTutorialType == Enums.GameType.Wheat)
-                {
-                    LOAF.ChangeScene(new WheatScene(LOAF, scoreTracker));
-                }
+                LOAF.ChangeScene(new OverworldScene(LOAF));
             }
         }
 
@@ -133,11 +110,6 @@ namespace LoafGame.Scenes
                 Vector2 linePos = new Vector2(centerX - lineSize.X / 2f, vh * (0.2f + i * 0.1f));
                 _spriteBatch.DrawString(tutorialFont, line, linePos, Color.White, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
             }
-
-            string limitsLine = "Times to aim for: " + limitsString;
-            Vector2 limitsLineSize = tutorialFont.MeasureString(limitsLine);
-            Vector2 limitsLinePos = new Vector2(centerX - limitsLineSize.X / 2f, vh * (0.2f + tutorialText.Length * 0.1f));
-            _spriteBatch.DrawString(tutorialFont, limitsLine, limitsLinePos, Color.White, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
 
             // progress bar
             float progress = MathHelper.Clamp(barFillProgress / barFillTime, 0f, 1f);

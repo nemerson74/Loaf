@@ -249,7 +249,7 @@ public class WheatScene : Scene, IParticleEmitter
                 fireballs.Dispose();
                 fireballs = null;
             }
-            if (_scoreTracker != null) _scoreTracker.BadlandPoints = _score;
+            if (_scoreTracker != null) _scoreTracker.GrasslandPoints = _score;
             LOAF.ChangeScene(new TitleScene(LOAF));
             return;
         }

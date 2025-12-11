@@ -189,7 +189,6 @@ namespace LoafGame
         #region private variables
         private float angle = 0.5f;
         private float prevAngle = 0f;
-        private float currentVelocity;
         private float currentMaxVelocity;
         private float angularAcceleration;
         private float accumulatedCW = 0f;

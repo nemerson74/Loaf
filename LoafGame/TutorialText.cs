@@ -29,10 +29,10 @@ namespace LoafGame
                 },
                 Enums.GameType.Cactus => new[]
                 {
-                    "Use the pickaxe to mine all the ores (rocks not required).",
-                    "Left mouse button to swing the pickaxe clockwise",
-                    "Right mouse button to swing the pickaxe counterclockwise",
-                    "Alternate swing direction after hit to take advantage of momentum"
+                    "Use the hand to harvest the required amount of cactus",
+                    "Left mouse button to swing the hand clockwise",
+                    "Right mouse button to swing the hand counterclockwise",
+                    "Avoid cactus, -5 fruit when hit"
                 },
                 Enums.GameType.Wheat => new[]
                 {

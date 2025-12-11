@@ -15,7 +15,6 @@ public class OverworldScene : Scene
     private SpriteBatch _spriteBatch;
     private RedWorker redWorker;
     private HexTilemap _tilemap;
-    private BoundingPoint cursor;
     private SpriteFont _font;
     private bool isSaved = false;
     private bool loadingFromSave = false;
@@ -27,6 +26,11 @@ public class OverworldScene : Scene
     private int prevHighlightedTile = -1;
     private int currentHighlightedTile = -1;
     private int playerTile = -1;
+    private Button buildButton, roadButton, saveButton;
+    private Texture2D roadTexture;
+    private Texture2D middleTexture;
+    private bool gameOver = false;
+    private int roadScore = 0;
 
     private float vw;
     private float vh;
@@ -37,6 +41,8 @@ public class OverworldScene : Scene
     private float mapHeight;
     private float horizontalOffset = 0f;
     private float verticalOffset = 0f;
+
+    private float buttonZoneThresh = 0f;
 
     private Vector2 startingPosition = Vector2.Zero;
 
@@ -70,6 +76,10 @@ public class OverworldScene : Scene
         MediaPlayer.Volume = 0.5f;
         MediaPlayer.Play(LOAF.backgroundMusicOverworld);
         MediaPlayer.IsRepeating = true;
+        buildButton = new Button() { Position = new Vector2(vw * 0.55f, vh * 0.05f), Text = "Build" };
+        roadButton = new Button() { Position = new Vector2(vw * 0.7f, vh * 0.05f), Text = "Road" };
+        saveButton = new Button() { Position = new Vector2(vw * 0.85f, vh * 0.05f), Text = "Save" };
+        buttonZoneThresh = vh * 0.1f;
         base.Initialize();
     }
 
@@ -102,6 +112,13 @@ public class OverworldScene : Scene
             _tilemap.BuildTile(playerTile);
             LOAF.BuildSound.Play();
         }
+        if (scoreTracker.IsComplete())
+        {
+            if (_tilemap.HasRoadPathWithAllBuildingTypes(out roadScore))
+            {
+                gameOver = true;
+            }
+        }
     }
 
     public override void LoadContent()
@@ -113,15 +130,20 @@ public class OverworldScene : Scene
         mapHeight = (_tilemap.TileHeight * _tilemap.MapHeight * 1.5f + _tilemap.TileHeight * 0.25f);
         verticalOffset = (vh - mapHeight) / 2f;
         horizontalOffset = 0f;
-        _tilemap.InitializeHexTiles(horizontalOffset, verticalOffset, 0);
+        roadTexture = Content.Load<Texture2D>("Overworld/road");
+        middleTexture = Content.Load<Texture2D>("Overworld/RoadMiddle28x32");
+        _tilemap.InitializeHexTiles(horizontalOffset, verticalOffset, 0, roadTexture, middleTexture);
         redWorker.LoadContent(Content);
         redWorker.Position = _tilemap.GetCenter(0) + new Vector2(-16, -16);
         _font = Content.Load<SpriteFont>("vergilia");
         if (loadingFromSave)
         {
-            _tilemap.TakeHexState(loadedSave);
+            _tilemap.TakeHexState(loadedSave, out scoreTracker);
             redWorker.Position = _tilemap.GetCenter(_tilemap.GetPlayerIndex()) + new Vector2(-16, -16);
         }
+        buildButton.LoadContent(Content);
+        roadButton.LoadContent(Content);
+        saveButton.LoadContent(Content);
     }
 
     public override void Update(GameTime gameTime)
@@ -129,63 +151,71 @@ public class OverworldScene : Scene
         var LOAF = Game as LOAF;
         if (LOAF == null) return;
         debugFlag = LOAF.InputManager.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Space);
-        //cursor = new BoundingPoint(LOAF.InputManager.Position / LOAF.GameScale);
-        _tilemap.Update(LOAF.InputManager.Position / LOAF.GameScale, 0, (vh - mapHeight) / 2);
-        playerTile = _tilemap.GetPlayerIndex();
-        currentHighlightedTile = _tilemap.GetHighlightedTile();
+        Vector2 MousePos = LOAF.InputManager.Position / LOAF.GameScale;
 
-        if (prevHighlightedTile != currentHighlightedTile)
+        if (MousePos.Y < buttonZoneThresh)
         {
-            prevHighlightedTile = currentHighlightedTile;
-            //maybe play moving sound here
+            BoundingPoint cursor = new BoundingPoint(MousePos);
+            buildButton.Update(cursor.CollidesWith(buildButton.Bounds));
+            roadButton.Update(cursor.CollidesWith(roadButton.Bounds));
+            saveButton.Update(cursor.CollidesWith(saveButton.Bounds));
+
+            if (LOAF.InputManager.LeftMouseClicked)
+            {
+                if (buildButton.Hover)
+                {
+                    if (Build(LOAF)) { /* scene change happens in Build */ }
+                }
+
+                if (roadButton.Hover)
+                {
+                    if (_tilemap.HasRoad(_tilemap.GetPlayerIndex()))
+                    {
+                        LOAF.DeniedSound.Play();
+                    }
+                    else
+                    {
+                        _tilemap.BuildRoad(_tilemap.GetPlayerIndex());
+                        LOAF.BuildSound.Play();
+                        if (scoreTracker.IsComplete() && _tilemap.HasRoadPathWithAllBuildingTypes(out roadScore))
+                        {
+                            gameOver = true;
+                        }
+                    }
+                }
+
+                if (saveButton.Hover)
+                {
+                    saveButton.PlayClickSound();
+                    SaveGame.SaveOverworld(_tilemap.GiveHexState(scoreTracker));
+                    isSaved = true;
+                }
+            }
         }
-
-        //save on F5 press
-        if (LOAF.InputManager.KeyClicked(Keys.F5))
+        else
         {
-            SaveGame.SaveOverworld(_tilemap.GiveHexState());
-            isSaved = true;
-        }
+            // Tilemap hover and click handling outside button zone
+            _tilemap.Update(MousePos, 0, (vh - mapHeight) / 2);
+            playerTile = _tilemap.GetPlayerIndex();
+            currentHighlightedTile = _tilemap.GetHighlightedTile();
 
-        if (LOAF.InputManager.LeftMouseClicked)
-        {
-            if (!_tilemap.MovePlayer())
+            if (prevHighlightedTile != currentHighlightedTile)
             {
-                LOAF.DeniedSound.Play();
+                prevHighlightedTile = currentHighlightedTile;
             }
-            else
-            {
-                LOAF.FleeSound.Play();
-                redWorker.Position = _tilemap.GetHighlightedCenterVector() + new Vector2(-16, -16);
-                tutorialFlag = false;
-            }
-        }
 
-        if (LOAF.InputManager.RightMouseClicked)
-        {
-            if (_tilemap.HasBuilding(_tilemap.GetPlayerIndex()) is true)
+            if (LOAF.InputManager.LeftMouseClicked)
             {
-                LOAF.DeniedSound.Play();
-            }
-            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Forest)
-            {
-                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Carpentry, scoreTracker));
-            }
-            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Desert)
-            {
-                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Cactus, scoreTracker));
-            }
-            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Badland)
-            {
-                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Mining, scoreTracker));
-            }
-            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Grassland)
-            {
-                LOAF.ChangeScene(new TutorialScene(LOAF, Enums.GameType.Wheat, scoreTracker));
-            }
-            else
-            {
-                LOAF.DeniedSound.Play();
+                if (!_tilemap.MovePlayer())
+                {
+                    LOAF.DeniedSound.Play();
+                }
+                else
+                {
+                    LOAF.FleeSound.Play();
+                    redWorker.Position = _tilemap.GetHighlightedCenterVector() + new Vector2(-16, -16);
+                    tutorialFlag = false;
+                }
             }
         }
 
@@ -201,9 +231,12 @@ public class OverworldScene : Scene
     {
         var LOAF = Game as LOAF;
         Game.GraphicsDevice.Clear(Color.DarkSlateGray);
-        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(LOAF.GameScale), blendState: BlendState.AlphaBlend);
+        _spriteBatch.Begin(transformMatrix: Matrix.CreateScale(LOAF.GameScale), blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp);
         
-        _spriteBatch.DrawString(_font, "ESC to return, Left mouse to move to adjacent tiles, Right mouse to build, F5 to Save, Spacebar for debug", new Vector2(vw * 0.05f, (vh - mapHeight) / 4), Color.Yellow, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(_font, "ESC to return, Left mouse to move to adjacent tiles, Spacebar for debug", new Vector2(vw * 0.01f, (vh - mapHeight) / 4), Color.Yellow, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+        buildButton.Draw(_spriteBatch);
+        roadButton.Draw(_spriteBatch);
+        saveButton.Draw(_spriteBatch);
         _tilemap.Draw(gameTime, _spriteBatch, 0, (vh - mapHeight) / 2);
         if (isSaved && textFadeTimer < 6f)
         {
@@ -215,7 +248,7 @@ public class OverworldScene : Scene
             {
                 textFadeOpacity = 1f - ((textFadeTimer - 3f) / 3f);
             }
-            _spriteBatch.DrawString(_font, "Game Saved", new Vector2(vw * 0.8f, (vh - mapHeight) / 4), Color.Yellow * textFadeOpacity, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(_font, "Game Saved", new Vector2(vw * 0.9f, (vh - mapHeight) / 4), Color.Yellow * textFadeOpacity, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
             textFadeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
         else if (isSaved && textFadeTimer >= 7f)
@@ -245,19 +278,88 @@ public class OverworldScene : Scene
             _spriteBatch.DrawString(_font, "Surrounding Tiles Indices: " + indicesText, new Vector2(vw * 0.05f, vh - (vh - mapHeight) / 4), Color.Yellow * textFadeOpacity, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
             string scoresText = string.Join(", ", scoreTracker.GetScores());
             _spriteBatch.DrawString(_font, "ScoresFGDB: " + scoresText, new Vector2(vw * 0.75f, vh - (vh - mapHeight) / 4), Color.Yellow * textFadeOpacity, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-
         }
 
         if (tutorialFlag)
         {
-            string titleText = "Build on at least 1 of each terrain";
-            Vector2 titleSize = _font.MeasureString(titleText);
-            Vector2 titlePos = new Vector2(centerX - titleSize.X / 4f, vh * 0.5f);
+            string titleText = "Build on at least 1 of each terrain and connect with roads";
+            Vector2 titlePos = new Vector2(vw * 0.01f, vh - (vh - mapHeight) / 4 );
             _spriteBatch.DrawString(_font, titleText, titlePos, Color.Yellow, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0f);
+        }
+        if(gameOver)
+        {
+            string gameOverText = "Victory! Minigame Score: " + scoreTracker.GetTotalScore() + " Road Score: " + roadScore/4;
+            Vector2 gameOverPos = new Vector2(vw * 0.01f, vh - (vh - mapHeight) / 4);
+            _spriteBatch.DrawString(_font, gameOverText, gameOverPos, Color.Yellow, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0f);
         }
 
         redWorker.Draw(gameTime, _spriteBatch);
 
         _spriteBatch.End();
+    }
+
+    private bool Build(LOAF l)
+    {
+        if (debugFlag)
+        {
+            if (_tilemap.HasBuilding(_tilemap.GetPlayerIndex()) is true)
+            {
+                LOAF.DeniedSound.Play();
+                return false;
+            }
+            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Forest)
+            {
+                scoreTracker.ForestPoints += 1;
+                Reinitialize();
+            }
+            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Desert)
+            {
+                scoreTracker.DesertPoints += 1;
+                Reinitialize();
+            }
+            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Badland)
+            {
+                scoreTracker.BadlandPoints += 1;
+                Reinitialize();
+            }
+            else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Grassland)
+            {
+                scoreTracker.GrasslandPoints += 1;
+                Reinitialize();
+            }
+            else
+            {
+                LOAF.DeniedSound.Play();
+                return false;
+            }
+            return true;
+        }
+        if (_tilemap.HasBuilding(_tilemap.GetPlayerIndex()) is true)
+        {
+            LOAF.DeniedSound.Play();
+            return false;
+        }
+        else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Forest)
+        {
+            LOAF.ChangeScene(new TutorialScene(l, Enums.GameType.Carpentry, scoreTracker));
+        }
+        else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Desert)
+        {
+            LOAF.ChangeScene(new TutorialScene(l, Enums.GameType.Cactus, scoreTracker));
+        }
+        else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Badland)
+        {
+            LOAF.ChangeScene(new TutorialScene(l, Enums.GameType.Mining, scoreTracker));
+        }
+        else if (_tilemap.GetTileTerrain(_tilemap.GetPlayerIndex()) == Enums.TileType.Grassland)
+        {
+            LOAF.ChangeScene(new TutorialScene(l, Enums.GameType.Wheat, scoreTracker));
+        }
+        else
+        {
+            LOAF.DeniedSound.Play();
+            return false;
+        }
+        return true;
     }
 }

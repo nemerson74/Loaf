@@ -123,7 +123,7 @@ namespace LoafGame
         {
             if (LoafGame.LOAF.ButtonClickSound != null)
             {
-                LoafGame.LOAF.ButtonClickSound.Play();
+                LoafGame.LOAF.ButtonClickSound.Play(0.5f, 0f, 0f);
             }
         }
     }

@@ -80,7 +80,7 @@ public class CactusScene : Scene, IParticleEmitter
 
     // --- constants ---
     private const float SCREEN_SHAKE_DURATION = 0.5f;
-    private const int FRUIT_NEEDED_COUNT = 20;
+    private const int FRUIT_NEEDED_COUNT = 15;
 
     // revolution tracking
     private FireballParticleSystem fireballred;
@@ -173,10 +173,13 @@ public class CactusScene : Scene, IParticleEmitter
                 if (item.IsFruit)
                 {
                     _fruitsGathered = Math.Min(_fruitsGathered + 1, FRUIT_NEEDED_COUNT);
+                    LOAF.ButtonClickSound.Play();
                 }
                 else
                 {
                     _fruitsGathered = Math.Max(0, _fruitsGathered - 5);
+                    screenShakeflag = true;
+                    screenShakeTimer = 0f;
                 }
                 slidingItems.RemoveAt(i);
                 continue;
@@ -224,7 +227,7 @@ public class CactusScene : Scene, IParticleEmitter
         if (screenShakeflag)
         {
             screenShakeTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            float shakeMagnitude = 1f;
+            float shakeMagnitude = 3f;
             //decrease the shake
             float currentMagnitude = shakeMagnitude * (1f - (screenShakeTimer / SCREEN_SHAKE_DURATION));
 
@@ -259,7 +262,7 @@ public class CactusScene : Scene, IParticleEmitter
                 fireballs.Dispose();
                 fireballs = null;
             }
-            if (_scoreTracker != null) _scoreTracker.BadlandPoints = _score;
+            if (_scoreTracker != null) _scoreTracker.DesertPoints = _score;
             LOAF.ChangeScene(new TitleScene(LOAF));
             return;
         }
@@ -338,7 +341,7 @@ public class CactusScene : Scene, IParticleEmitter
 
         _spriteBatch.DrawString(font, "Mouse Buttons to Rotate, Spacebar: DEBUG", new Vector2(vw * 0.7f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
         _spriteBatch.DrawString(font, "ESC to return", new Vector2(vw * 0.02f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
-        _spriteBatch.DrawString(font, "Fruits: " + _fruitsGathered.ToString() + "/" + FRUIT_NEEDED_COUNT, new Vector2(vw * 0.22f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
+        _spriteBatch.DrawString(font, "Fruits: " + _fruitsGathered.ToString() + "/" + FRUIT_NEEDED_COUNT, new Vector2(vw * 0.22f, vh * 0.02f), Color.Yellow, 0f, Vector2.Zero, fontScale * 2, SpriteEffects.None, 0f);
 
         if (debugFlag)
         {

@@ -19,10 +19,12 @@ public class TitleScene : Scene
     private SpriteBatch _spriteBatch;
     private Player _player;
 
+    /*
     private float vw;
     private float vh;
     private float leftMargin;
     private float centerX;
+    */
 
     private Button startButton;
     private Button loadButton;

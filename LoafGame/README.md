@@ -24,6 +24,11 @@ released under Creative Commons Zero v1.0 Universal
 (https://merchant-shade.itch.io/16x16-mini-world-sprites),
 released under Creative Commons Zero v1.0 Universal
 
+* Pixel Cactus/Cacti - created by kamioo
+Pixel Cactus/Cacti pack on Itch.io
+(https://kamioo.itch.io/pixel-cactus)
+Released under Creative Commons Zero v1.0 Universal
+
 * Some sound effects in this project is provided by Leophaz
 and are available from https://leohpaz.itch.io/rpg-essentials-sfx-free.
 These assets are free to use in projects.
@@ -49,4 +54,9 @@ nail.png
 ore.png
 rock.png
 pickaxe.png
+scythe.png
+wheatfield.png
+hand.png
+road.png
+
 

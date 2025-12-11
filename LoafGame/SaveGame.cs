@@ -65,5 +65,6 @@ namespace LoafGame
         public bool[] s_HasPlayer;
         public bool[] s_HasBuilding;
         public bool[] s_HasRoad;
+        public int[] s_scores;
     }
 }

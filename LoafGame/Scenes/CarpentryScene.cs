@@ -75,7 +75,6 @@ public class CarpentryScene : Scene, IParticleEmitter
     private float angle = 0.5f;
     private float prevAngle = 0f;
     private float angularVelocity;
-    private float prevangularAcceleration = 0f;
     private float angularAcceleration;
 
     private bool screenShakeFlag = false;
@@ -424,7 +423,7 @@ public class CarpentryScene : Scene, IParticleEmitter
             if (Math.Abs(angularVelocity) > 3f && lastNailHitTime > 0.3f && !(nailIndex == NAIL_COUNT - 1 && nailProgress[nailRandom[nailIndex]] >= NAIL_HIT_THRESHOLD))
             {
                 //to the left of the nail and swinging CW
-                if (anchor.X < nailBounds.X && angularVelocity > 0)
+                if (anchor.X < nailBounds.X + nailBounds.Width / 2 && angularVelocity > 0)
                 {
                     if (headCircleRight.CollidesWith(nailBounds))
                     {
@@ -432,7 +431,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                     }
                 }
                 //to the right of the nail and swinging CCW
-                if (anchor.X > nailBounds.X + nailBounds.Width && angularVelocity < 0)
+                if (anchor.X > nailBounds.X + nailBounds.Width / 2 && angularVelocity < 0)
                 {
                     if (headCircleLeft.CollidesWith(nailBounds))
                     {
@@ -440,7 +439,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                     }
                 }
                 //to the left of the nail and swinging CCW
-                if (anchor.X < nailBounds.X && angularVelocity < 0)
+                if (anchor.X < nailBounds.X + nailBounds.Width / 2 && angularVelocity < 0)
                 {
                     if (headCircleLeft.CollidesWith(nailBounds))
                     {
@@ -448,7 +447,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                     }
                 }
                 //to the right of the nail and swinging CW
-                if (anchor.X > nailBounds.X + nailBounds.Width && angularVelocity > 0)
+                if (anchor.X > nailBounds.X + nailBounds.Width / 2 && angularVelocity > 0)
                 {
                     if (headCircleRight.CollidesWith(nailBounds))
                     {
@@ -461,7 +460,7 @@ public class CarpentryScene : Scene, IParticleEmitter
             if (Math.Abs(angularVelocity) > 3f && lastSideNailHitTime > 0.3f && !(sideNailIndex == NAIL_COUNT - 1 && sideNailProgress[sideNailRandom[sideNailIndex]] >= NAIL_HIT_THRESHOLD))
             {
                 //above nail and swinging CW
-                if (anchor.Y < nailBounds2.Y && angularVelocity > 0)
+                if (anchor.Y < nailBounds2.Y + nailBounds2.Height / 2 && angularVelocity > 0)
                 {
                     if (headCircleRight.CollidesWith(nailBounds2))
                     {
@@ -469,7 +468,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                     }
                 }
                 //below nail and swinging CCW
-                if (anchor.Y > nailBounds2.Y + nailBounds2.Height && angularVelocity < 0)
+                if (anchor.Y > nailBounds2.Y + nailBounds2.Height / 2 && angularVelocity < 0)
                 {
                     if (headCircleLeft.CollidesWith(nailBounds2))
                     {
@@ -477,7 +476,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                     }
                 }
                 //above and swinging CCW
-                if (anchor.Y < nailBounds2.Y && angularVelocity < 0)
+                if (anchor.Y < nailBounds2.Y + nailBounds2.Height / 2 && angularVelocity < 0)
                 {
                     if (headCircleLeft.CollidesWith(nailBounds2))
                     {
@@ -485,7 +484,7 @@ public class CarpentryScene : Scene, IParticleEmitter
                     }
                 }
                 //below nail and swinging CW
-                if (anchor.Y > nailBounds2.Y + nailBounds2.Height && angularVelocity > 0)
+                if (anchor.Y > nailBounds2.Y + nailBounds2.Height / 2 && angularVelocity > 0)
                 {
                     if (headCircleRight.CollidesWith(nailBounds2))
                     {
@@ -729,7 +728,6 @@ public class CarpentryScene : Scene, IParticleEmitter
     private void NailHit()
     {
         lastNailHitTime = 0f;
-        hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
         nailProgress[nailRandom[nailIndex]] += (int)Math.Abs(angularVelocity) - 2;
         if (nailProgress[nailRandom[nailIndex]] >= NAIL_HIT_THRESHOLD)
         {
@@ -737,6 +735,12 @@ public class CarpentryScene : Scene, IParticleEmitter
             nailIndex++;
             nailIndex = Math.Min(nailIndex, NAIL_COUNT - 1);
             screenShakeFlag = true;
+            screenShakeTimer = 0f;
+            hammerHit.Play(1f, 1f, 0f);
+        }
+        else
+        {
+            hammerHit.Play(0.8f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
         }
     }
     
@@ -750,7 +754,6 @@ public class CarpentryScene : Scene, IParticleEmitter
     private void SideNailHit()
     {
         lastSideNailHitTime = 0f;
-        hammerHit.Play(1f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
         sideNailProgress[sideNailRandom[sideNailIndex]] += (int)Math.Abs(angularVelocity) - 2;
         if (sideNailProgress[sideNailRandom[sideNailIndex]] >= NAIL_HIT_THRESHOLD)
         {
@@ -758,6 +761,12 @@ public class CarpentryScene : Scene, IParticleEmitter
             sideNailIndex++;
             sideNailIndex = Math.Min(sideNailIndex, SIDE_NAIL_COUNT - 1);
             screenShakeFlag = true;
+            screenShakeTimer = 0f;
+            hammerHit.Play(1f, 1f, 0f);
+        }
+        else
+        {
+            hammerHit.Play(0.8f, Math.Min(1f - Math.Abs(angularVelocity) / 12, 1f), 0f);
         }
     }
 
