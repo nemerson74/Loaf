@@ -42,6 +42,11 @@ public class OverworldScene : Scene
     private float horizontalOffset = 0f;
     private float verticalOffset = 0f;
 
+    private string lumberString = "0";
+    private string cactusString = "0";
+    private string grasslandString = "0";
+    private string badlandString = "0";
+
     private float buttonZoneThresh = 0f;
 
     private Vector2 startingPosition = Vector2.Zero;
@@ -91,26 +96,39 @@ public class OverworldScene : Scene
 
         if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Forest)
         {
-            if (scoreTracker.ForestPoints != 0) _tilemap.BuildTile(playerTile);
-            LOAF.BuildSound.Play();
+            if (scoreTracker.ForestPoints != 0)
+            {
+                _tilemap.BuildTile(playerTile);
+                lumberString = scoreTracker.ForestPoints.ToString();
+                LOAF.BuildSound.Play();
+            }
         }
         else if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Desert)
         {
-            //if (scoreTracker.DesertPoints != 0) _tilemap.BuildTile(playerTile);
-            _tilemap.BuildTile(playerTile);
-            LOAF.BuildSound.Play();
+            if (scoreTracker.DesertPoints != 0)
+            {
+                _tilemap.BuildTile(playerTile);
+                cactusString = scoreTracker.DesertPoints.ToString();
+                LOAF.BuildSound.Play();
+            }
         }
         else if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Badland)
         {
-            //if (scoreTracker.BadlandPoints != 0) _tilemap.BuildTile(playerTile);
-            _tilemap.BuildTile(playerTile);
-            LOAF.BuildSound.Play();
+            if (scoreTracker.BadlandPoints != 0)
+            {
+                _tilemap.BuildTile(playerTile);
+                badlandString = scoreTracker.BadlandPoints.ToString();
+                LOAF.BuildSound.Play();
+            }
         }
         else if (_tilemap.GetTileTerrain(playerTile) == Enums.TileType.Grassland)
         {
-            //if (scoreTracker.GrasslandPoints != 0) _tilemap.BuildTile(playerTile);
-            _tilemap.BuildTile(playerTile);
-            LOAF.BuildSound.Play();
+            if (scoreTracker.GrasslandPoints != 0)
+            {
+                _tilemap.BuildTile(playerTile);
+                grasslandString = scoreTracker.GrasslandPoints.ToString();
+                LOAF.BuildSound.Play();
+            }
         }
         if (scoreTracker.IsComplete())
         {
@@ -280,9 +298,9 @@ public class OverworldScene : Scene
             _spriteBatch.DrawString(_font, "ScoresFGDB: " + scoresText, new Vector2(vw * 0.75f, vh - (vh - mapHeight) / 4), Color.Yellow * textFadeOpacity, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         }
 
-        if (tutorialFlag)
+        if (!gameOver)
         {
-            string titleText = "Build on at least 1 of each terrain and connect with roads";
+            string titleText = "Forest: " + lumberString + " Desert: " + cactusString + " Grassland: " + grasslandString + " Badland: " + badlandString + " Connected?: " + (scoreTracker.GetTotalScore() > 0 ? "Yes" : "No");
             Vector2 titlePos = new Vector2(vw * 0.01f, vh - (vh - mapHeight) / 4 );
             _spriteBatch.DrawString(_font, titleText, titlePos, Color.Yellow, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0f);
         }

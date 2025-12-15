@@ -22,9 +22,9 @@ namespace LoafGame
             Cactus,
             Wheat
         }
-        public static readonly float[] CARPENTRY_LIMITS = { 30f, 45f, 60f };
-        public static readonly float[] MINING_LIMITS = { 20f, 35f, 45f };
-        public static readonly float[] CACTUS_LIMITS = { 30f, 45f, 60f };
-        public static readonly float[] WHEAT_LIMITS = { 15f, 25f, 40f };
+        public static readonly float[] CARPENTRY_LIMITS = { 30f, 45f, 70f };
+        public static readonly float[] MINING_LIMITS = { 20f, 35f, 55f };
+        public static readonly float[] CACTUS_LIMITS = { 40f, 55f, 70f };
+        public static readonly float[] WHEAT_LIMITS = { 15f, 25f, 55f };
     }
 }
