@@ -282,7 +282,7 @@ public class WheatScene : Scene, IParticleEmitter
                     scythe.CursorOrigin = new Vector2(14f, 10f);
                     scythe.SetAngle(SCYTHE_POSITION_2);
                     scythe.SetToolFrame(0);
-                    scythe.Color = Color.Green;
+                    scythe.Color = Color.Blue;
                     scythe.PlayWhooshSound(1f, 1f, .8f);
                     prevPosition = 2;
                 }
@@ -317,14 +317,14 @@ public class WheatScene : Scene, IParticleEmitter
                 _spriteBatch.Draw(_wheat, destPos, src, Color.White);
             }
 
-            // Highlight next region to click (alternate colors by order parity)
+            // Highlight next region to click
             if (_currentRegionIndex < _regionOrder.Length && _overlayPixel != null)
             {
                 int targetIdx = _regionOrder[_currentRegionIndex];
                 var src = _wheatSources[targetIdx];
                 // Alternate colors
                 bool even = (_currentRegionIndex % 2) == 0;
-                var highlightColor = even ? new Color(255, 0, 0, 60) : new Color(0, 255, 0, 60);
+                var highlightColor = even ? new Color(255, 0, 0, 60) : new Color(0, 0, 255, 60);
                 DrawOutline(new Rectangle(src.X, src.Y, src.Width, src.Height), highlightColor, OverlayOutlineThickness);
 
                 int afterIdxPos = _currentRegionIndex + 1;
@@ -332,7 +332,7 @@ public class WheatScene : Scene, IParticleEmitter
                 {
                     int afterIdx = _regionOrder[afterIdxPos];
                     var afterSrc = _wheatSources[afterIdx];
-                    var afterColor = even ? new Color(0, 255, 0, 50) : new Color(255, 0, 0, 50);
+                    var afterColor = even ? new Color(0, 0, 255, 50) : new Color(255, 0, 0, 50);
                     DrawOutline(new Rectangle(afterSrc.X, afterSrc.Y, afterSrc.Width, afterSrc.Height), afterColor, OverlayOutlineThickness);
                 }
             }
@@ -341,7 +341,6 @@ public class WheatScene : Scene, IParticleEmitter
         scythe.Draw(gameTime, _spriteBatch);
         _scoreTimer.Draw(_spriteBatch);
 
-        // Load font once in LoadContent; guard if null
         SpriteFont font = null;
         try { font = Content.Load<SpriteFont>("vergilia"); } catch { /* handle */ }
         if (font != null)

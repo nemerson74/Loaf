@@ -37,7 +37,7 @@ namespace LoafGame
                 Enums.GameType.Wheat => new[]
                 {
                     "Click on all regions in given order",
-                    "First color is red, next color is green",
+                    "First color is red, next color is blue",
                     "Alternate colors after each click",
                     "Sub-10 seconds for real gamer hours"
                 },
