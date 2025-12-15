@@ -24,7 +24,7 @@ namespace LoafGame
             return ForestPoints + GrasslandPoints + DesertPoints + BadlandPoints;
         }
 
-        public int[] GetScores() { return new int[] { ForestPoints, GrasslandPoints, DesertPoints, BadlandPoints }; }
+        public int[] GetScores() { return new int[4] { ForestPoints, GrasslandPoints, DesertPoints, BadlandPoints }; }
 
         public void TakeScores (int[] scores)
         {

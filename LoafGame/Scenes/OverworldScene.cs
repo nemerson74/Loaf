@@ -156,8 +156,14 @@ public class OverworldScene : Scene
         _font = Content.Load<SpriteFont>("vergilia");
         if (loadingFromSave)
         {
-            _tilemap.TakeHexState(loadedSave, out scoreTracker);
+            ScoreTracker _scoreTracker = new ScoreTracker();
+            _tilemap.TakeHexState(loadedSave, out _scoreTracker);
+            scoreTracker = _scoreTracker;
             redWorker.Position = _tilemap.GetCenter(_tilemap.GetPlayerIndex()) + new Vector2(-16, -16);
+            cactusString = scoreTracker.DesertPoints.ToString();
+            lumberString = scoreTracker.ForestPoints.ToString();
+            grasslandString = scoreTracker.GrasslandPoints.ToString();
+            badlandString = scoreTracker.BadlandPoints.ToString();
         }
         buildButton.LoadContent(Content);
         roadButton.LoadContent(Content);
@@ -300,8 +306,8 @@ public class OverworldScene : Scene
 
         if (!gameOver)
         {
-            string titleText = "Forest: " + lumberString + " Desert: " + cactusString + " Grassland: " + grasslandString + " Badland: " + badlandString + " Connected?: " + (scoreTracker.GetTotalScore() > 0 ? "Yes" : "No");
-            Vector2 titlePos = new Vector2(vw * 0.01f, vh - (vh - mapHeight) / 4 );
+            string titleText = "Forest: " + lumberString + " Desert: " + cactusString + " Grassland: " + grasslandString + " Badland: " + badlandString + " All Connected?: No";
+            Vector2 titlePos = new Vector2(vw * 0.01f, vh - (vh - mapHeight) / 2);
             _spriteBatch.DrawString(_font, titleText, titlePos, Color.Yellow, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0f);
         }
         if(gameOver)
